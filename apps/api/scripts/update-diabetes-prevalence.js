@@ -23,9 +23,8 @@ async function updateDiabetesPrevalence() {
           console.error(`Error on updateDiabetesPrevalence for ${row.location}: ${error.message}`);
         }
       }
-      console.log('updateDiabetesPrevalence completed.');
       await prisma.$disconnect();
     });
 }
 
-updateDiabetesPrevalence();
+module.exports = updateDiabetesPrevalence;

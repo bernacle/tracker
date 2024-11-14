@@ -23,9 +23,8 @@ async function updatePopulationDensity() {
           console.error(`Error on updatePopulationDensity for ${row.location}: ${error.message}`);
         }
       }
-      console.log('updatePopulationDensity completed.');
       await prisma.$disconnect();
     });
 }
 
-updatePopulationDensity();
+module.exports = updatePopulationDensity;

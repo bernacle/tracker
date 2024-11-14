@@ -23,9 +23,8 @@ async function updateExtremePoverty() {
           console.error(`Error on updateExtremePoverty for ${row.location}: ${error.message}`);
         }
       }
-      console.log('updateExtremePoverty completed.');
       await prisma.$disconnect();
     });
 }
 
-updateExtremePoverty();
+module.exports = updateExtremePoverty;

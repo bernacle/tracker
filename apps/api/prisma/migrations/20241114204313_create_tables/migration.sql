@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "Country" (
+CREATE TABLE "countries" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "iso_code" TEXT NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE "Country" (
     "human_development_index" DOUBLE PRECISION,
     "income_group" TEXT,
 
-    CONSTRAINT "Country_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "countries_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -38,7 +38,7 @@ CREATE TABLE "covid_cases" (
 );
 
 -- CreateTable
-CREATE TABLE "Vaccination" (
+CREATE TABLE "vaccinations" (
     "id" SERIAL NOT NULL,
     "date" TIMESTAMP(3) NOT NULL,
     "total_vaccinations" DOUBLE PRECISION,
@@ -70,7 +70,7 @@ CREATE TABLE "Vaccination" (
     "rolling_vaccinations_12m_per_hundred" DOUBLE PRECISION,
     "country_id" INTEGER NOT NULL,
 
-    CONSTRAINT "Vaccination_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "vaccinations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -108,19 +108,19 @@ CREATE TABLE "lives_expectancy" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Country_iso_code_key" ON "Country"("iso_code");
+CREATE UNIQUE INDEX "countries_iso_code_key" ON "countries"("iso_code");
 
 -- AddForeignKey
-ALTER TABLE "covid_cases" ADD CONSTRAINT "covid_cases_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "Country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "covid_cases" ADD CONSTRAINT "covid_cases_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Vaccination" ADD CONSTRAINT "Vaccination_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "Country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "vaccinations" ADD CONSTRAINT "vaccinations_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "vaccinations_by_age" ADD CONSTRAINT "vaccinations_by_age_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "Country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "vaccinations_by_age" ADD CONSTRAINT "vaccinations_by_age_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "vaccinations_by_manufacturer" ADD CONSTRAINT "vaccinations_by_manufacturer_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "Country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "vaccinations_by_manufacturer" ADD CONSTRAINT "vaccinations_by_manufacturer_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "lives_expectancy" ADD CONSTRAINT "lives_expectancy_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "Country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "lives_expectancy" ADD CONSTRAINT "lives_expectancy_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

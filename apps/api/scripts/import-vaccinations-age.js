@@ -8,16 +8,16 @@ const prisma = new PrismaClient({
   log: ['error']
 });
 
-async function importLifeExpectancy() {
+async function importVaccinationAge() {
   return new Promise(async (resolve, reject) => {
     const BATCH_SIZE = 1000;
     let processedCount = 0;
     let successCount = 0;
-    const filePath = path.join(__dirname, '../data/csv/life_expectancy.csv');
+    const filePath = path.join(__dirname, '../data/csv/vaccinations_age.csv');
 
     const countries = await prisma.country.findMany();
     const countryMap = new Map(
-      countries.map(country => [country.isoCode, country.id])
+      countries.map(country => [country.name.toLowerCase().trim(), country.id])
     );
 
     const totalRecords = await new Promise((resolve) => {
@@ -28,21 +28,24 @@ async function importLifeExpectancy() {
         .on('end', () => resolve(count));
     });
 
-    const progressBar = multibar.create(totalRecords, 0, { title: 'Life Expectancy' });
+    const progressBar = multibar.create(totalRecords, 0, { title: 'Vacc. by Age' });
     let currentBatch = [];
 
     const processBatch = async (batch) => {
       try {
         const validRecords = batch
-          .filter(row => countryMap.has(row.Code))
+          .filter(row => countryMap.has(row.country.toLowerCase().trim()))
           .map(row => ({
-            year: parseInt(row.Year),
-            lifeExpectancy: parseFloat(row['Period life expectancy at birth - Sex: all - Age: 0']) || null,
-            countryId: countryMap.get(row.Code)
+            date: new Date(row.date),
+            ageGroup: row.age_group,
+            peopleVaccinatedPerHundred: parseFloat(row.people_vaccinated_per_hundred) || null,
+            peopleFullyVaccinatedPerHundred: parseFloat(row.people_fully_vaccinated_per_hundred) || null,
+            peopleWithBoosterPerHundred: parseFloat(row.people_with_booster_per_hundred) || null,
+            countryId: countryMap.get(row.country.toLowerCase().trim())
           }));
 
         if (validRecords.length > 0) {
-          const result = await prisma.lifeExpectancy.createMany({
+          const result = await prisma.vaccinationByAge.createMany({
             data: validRecords,
             skipDuplicates: true
           });
@@ -86,4 +89,4 @@ async function importLifeExpectancy() {
   });
 }
 
-module.exports = importLifeExpectancy;
+module.exports = importVaccinationAge;

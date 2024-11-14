@@ -23,9 +23,9 @@ async function updateGdpPerCapita() {
           console.error(`Error on updateGdpPerCapita for ${row.location}: ${error.message}`);
         }
       }
-      console.log('updateGdpPerCapita completed.');
       await prisma.$disconnect();
     });
 }
 
-updateGdpPerCapita();
+module.exports = updateGdpPerCapita;
+

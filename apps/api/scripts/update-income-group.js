@@ -23,9 +23,9 @@ async function updateIncomeGroup() {
           console.error(`Error on updateIncomeGroup for ${row.Country}: ${error.message}`);
         }
       }
-      console.log('updateIncomeGroup completed.');
       await prisma.$disconnect();
     });
 }
 
-updateIncomeGroup();
+module.exports = updateIncomeGroup;
+

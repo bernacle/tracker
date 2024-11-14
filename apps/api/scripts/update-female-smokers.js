@@ -23,9 +23,8 @@ async function updateFemaleSmokers() {
           console.error(`Error on updateFemaleSmokers for ${row.location}: ${error.message}`);
         }
       }
-      console.log('updateFemaleSmokers completed.');
       await prisma.$disconnect();
     });
 }
 
-updateFemaleSmokers();
+module.exports = updateFemaleSmokers;

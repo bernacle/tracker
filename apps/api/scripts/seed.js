@@ -10,31 +10,88 @@ const updatePopulationDensity = require('./update-population-density');
 const importCovidCases = require('./import-covid-cases');
 const importLifeExpectancy = require('./import-life-expectancy');
 const importVaccinations = require('./import-vaccinations');
-const importVaccinationsByAge = require('./import-vaccinations-by-age');
-const importVaccinationsByManufacturer = require('./import-vaccinations-by-manufacturer');
+const importVaccinationsByAge = require('./import-vaccinations-age');
+const importVaccinationsByManufacturer = require('./import-vaccinations-manufacturer');
+const { PrismaClient } = require('@prisma/client');
+const multibar = require('./progress-bar');
 
-async function main() {
-  console.log("Starting database seeding...");
+const prisma = new PrismaClient();
 
-  await importCountries();
-  await updateAged65Older();
-  await updateDiabetesPrevalence();
-  await updateIncomeGroup();
-  await updateExtremePoverty();
-  await updateFemaleSmokers();
-  await updateGdpPerCapita();
-  await updateMaleSmokers();
-  await updatePopulationDensity();
-  await importCovidCases();
-  await importLifeExpectancy();
-  await importVaccinations();
-  await importVaccinationsByAge();
-  await importVaccinationsByManufacturer();
+const log = {
+  phase: (name) => console.log(`\n[PHASE] ${name}`),
+  success: (msg) => console.log(`✓ ${msg}`),
+  error: (msg) => console.error(`✗ ${msg}`),
+  summary: (data) => {
+    const { time } = data;
 
-  console.log("Database seeding completed successfully.");
+    if (time) {
+      console.log(`  → Time: ${time}ms`);
+    }
+  }
+};
+
+async function verifyCountries() {
+  const count = await prisma.country.count();
+  if (count === 0) {
+    throw new Error('Countries table is empty after import');
+  }
+  return count;
 }
 
-main().catch((error) => {
-  console.error("Error seeding database:", error);
-  process.exit(1);
-});
+async function seedDatabase() {
+  const startTime = Date.now();
+
+  try {
+    log.phase('Importing and verifying country data');
+    await importCountries();
+    await verifyCountries();
+
+    log.phase('Updating country attributes');
+    const updates = [
+      updateAged65Older(),
+      updateDiabetesPrevalence(),
+      updateIncomeGroup(),
+      updateExtremePoverty(),
+      updateFemaleSmokers(),
+      updateGdpPerCapita(),
+      updateMaleSmokers(),
+      updatePopulationDensity()
+    ];
+
+    await Promise.all(updates);
+    log.success('All country attributes updated');
+
+    log.phase('Importing main datasets');
+    await Promise.all([
+      importCovidCases(),
+      importLifeExpectancy(),
+      importVaccinations(),
+      importVaccinationsByAge(),
+      importVaccinationsByManufacturer()
+    ]);
+
+    multibar.stop();
+
+    const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    log.phase('Database Seeding Complete');
+    log.success(`Total time: ${totalTime}s`);
+
+  } catch (error) {
+    multibar.stop();
+    log.error('Seeding failed:');
+    console.error(error);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+// If running directly
+if (require.main === module) {
+  seedDatabase()
+    .catch(error => {
+      log.error('Fatal error during seeding');
+      console.error(error);
+      process.exit(1);
+    });
+}

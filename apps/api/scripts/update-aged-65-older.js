@@ -23,9 +23,8 @@ async function updateAged65Older() {
           console.error(`Error updating aged 65 older for ${row.location}: ${error.message}`);
         }
       }
-      console.log('Aged 65+ data update completed.');
       await prisma.$disconnect();
     });
 }
 
-updateAged65Older();
+module.exports = updateAged65Older;

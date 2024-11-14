@@ -9,7 +9,7 @@ datasource db {
 
 model Country {
   id                      Int     @id @default(autoincrement())
-  name                    String
+  name                    String  @unique
   isoCode                 String  @unique @map("iso_code")
   continent               String?
   population              Int?
@@ -33,7 +33,10 @@ model Country {
   vaccinations               Vaccination[]
   vaccinationsByAge          VaccinationByAge[]
   vaccinationsByManufacturer VaccinationByManufacturer[]
-  LifeExpectancy             LifeExpectancy[]
+  livesExpectancy            LifeExpectancy[]
+
+  @@index([name])
+  @@map("countries")
 }
 
 model CovidCase {
@@ -83,6 +86,8 @@ model Vaccination {
 
   countryId Int     @map("country_id")
   country   Country @relation(fields: [countryId], references: [id])
+
+  @@map("vaccinations")
 }
 
 model VaccinationByAge {
