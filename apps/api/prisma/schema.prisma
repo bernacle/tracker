@@ -27,13 +27,13 @@ model Country {
   hospitalBedsPerThousand Float?  @map("hospital_beds_per_thousand")
   lifeExpectancy          Float?  @map("life_expectancy")
   humanDevelopmentIndex   Float?  @map("human_development_index")
+  incomeGroup             String? @map("income_group")
 
   covidCases                 CovidCase[]
   vaccinations               Vaccination[]
   vaccinationsByAge          VaccinationByAge[]
   vaccinationsByManufacturer VaccinationByManufacturer[]
-
-  @@map("countries")
+  LifeExpectancy             LifeExpectancy[]
 }
 
 model CovidCase {
@@ -51,18 +51,38 @@ model CovidCase {
 }
 
 model Vaccination {
-  id                    Int      @id @default(autoincrement())
-  date                  DateTime
-  totalVaccinations     Int?     @map("total_vaccinations")
-  peopleVaccinated      Int?     @map("people_vaccinated")
-  peopleFullyVaccinated Int?     @map("people_fully_vaccinated")
-  totalBoosters         Int?     @map("total_boosters")
-  dailyVaccinations     Int?     @map("daily_vaccinations")
+  id                                                Int      @id @default(autoincrement())
+  date                                              DateTime
+  totalVaccinations                                 Float?   @map("total_vaccinations")
+  peopleVaccinated                                  Float?   @map("people_vaccinated")
+  peopleFullyVaccinated                             Float?   @map("people_fully_vaccinated")
+  totalBoosters                                     Float?   @map("total_boosters")
+  dailyVaccinations                                 Float?   @map("daily_vaccinations")
+  dailyVaccinationsSmoothed                         Float?   @map("daily_vaccinations_smoothed")
+  dailyPeopleVaccinatedSmoothed                     Float?   @map("daily_people_vaccinated_smoothed")
+  totalVaccinationsPerHundred                       Float?   @map("total_vaccinations_per_hundred")
+  peopleVaccinatedPerHundred                        Float?   @map("people_vaccinated_per_hundred")
+  peopleFullyVaccinatedPerHundred                   Float?   @map("people_fully_vaccinated_per_hundred")
+  totalBoostersPerHundred                           Float?   @map("total_boosters_per_hundred")
+  dailyPeopleVaccinatedSmoothedPerHundred           Float?   @map("daily_people_vaccinated_smoothed_per_hundred")
+  dailyVaccinationsSmoothedPerMillion               Float?   @map("daily_vaccinations_smoothed_per_million")
+  peopleUnvaccinated                                Float?   @map("people_unvaccinated")
+  shareOfBoosters                                   Float?   @map("share_of_boosters")
+  totalVaccinationsInterpolated                     Float?   @map("total_vaccinations_interpolated")
+  peopleVaccinatedInterpolated                      Float?   @map("people_vaccinated_interpolated")
+  peopleFullyVaccinatedInterpolated                 Float?   @map("people_fully_vaccinated_interpolated")
+  totalBoostersInterpolated                         Float?   @map("total_boosters_interpolated")
+  totalVaccinationsNoBoostersInterpolated           Float?   @map("total_vaccinations_no_boosters_interpolated")
+  totalVaccinationsNoBoostersPerHundredInterpolated Float?   @map("total_vaccinations_no_boosters_per_hundred_interpolated")
+  rollingVaccinations6m                             Float?   @map("rolling_vaccinations_6m")
+  rollingVaccinations6mPerHundred                   Float?   @map("rolling_vaccinations_6m_per_hundred")
+  rollingVaccinations9m                             Float?   @map("rolling_vaccinations_9m")
+  rollingVaccinations9mPerHundred                   Float?   @map("rolling_vaccinations_9m_per_hundred")
+  rollingVaccinations12m                            Float?   @map("rolling_vaccinations_12m")
+  rollingVaccinations12mPerHundred                  Float?   @map("rolling_vaccinations_12m_per_hundred")
 
   countryId Int     @map("country_id")
   country   Country @relation(fields: [countryId], references: [id])
-
-  @@map("vaccinations")
 }
 
 model VaccinationByAge {
@@ -89,4 +109,15 @@ model VaccinationByManufacturer {
   country   Country @relation(fields: [countryId], references: [id])
 
   @@map("vaccinations_by_manufacturer")
+}
+
+model LifeExpectancy {
+  id             Int   @id @default(autoincrement())
+  year           Int
+  lifeExpectancy Float
+
+  countryId Int     @map("country_id")
+  country   Country @relation(fields: [countryId], references: [id])
+
+  @@map("lives_expectancy")
 }
