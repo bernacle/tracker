@@ -1,0 +1,16 @@
+{
+  "name": "covid-tracker",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint"
+  },
+  "devDependencies": {
+    "turbo": "^2.2.3"
+  },
+  "packageManager": "pnpm@9.13.0",
+  "engines": {
+    "node": ">=18"
+  }
+}

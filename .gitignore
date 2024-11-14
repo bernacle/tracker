@@ -1,0 +1,66 @@
+# Node modules and package manager files
+/node_modules
+**/node_modules
+.pnpm
+.pnp.js
+.pnp.data.json
+
+# Lock files
+package-lock.json
+pnpm-lock.yaml
+
+# TurboRepo cache
+.turbo
+turbo.json.lock
+
+# Build output and distribution folders
+/dist
+**/dist
+/.next
+**/.next
+.next/cache
+
+# TypeScript cache
+**/.turbo
+**/.turbo/cache
+
+# Logs
+pnpm-debug.log*
+*.log
+
+# .env files
+.env
+.env.*
+**/.env
+**/.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel and Netlify specific files
+.vercel
+
+# IDE files
+.vscode
+
+# Miscellaneous files
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+
+# Temporary files
+/tmp
+**/tmp
+
+# Shared configurations and caches for Prettier and ESLint
+**/.eslintcache
+**/.prettiercache
+
+# Ignore shared config lock files
+config/**/pnpm-lock.yaml
+
+# Generated Typescript files
+**/*.d.ts
+tsconfig.tsbuildinfo
