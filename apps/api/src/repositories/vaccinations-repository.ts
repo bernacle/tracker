@@ -2,22 +2,22 @@ import type { Vaccination, VaccinationByAge, VaccinationByManufacturer } from "@
 
 export interface VaccinationsRepository {
   findManyByCountriesAndDateRange(
-    countryIds: number[],
+    countryIds: string[],
     startDate: Date,
     endDate: Date
-  ): Promise<Record<number, Vaccination[]>>
+  ): Promise<Record<string, Vaccination[]>>
 
   findByManufacturer(
-    countryId: number,
+    countryId: string,
     startDate: Date,
     endDate: Date
   ): Promise<VaccinationByManufacturer[]>
 
   findByAgeGroup(
-    countryId: number,
+    countryId: string,
     startDate: Date,
     endDate: Date
   ): Promise<VaccinationByAge[]>
 
-  findLatestByCountries(countryIds: number[]): Promise<Record<number, Vaccination>>
+  findLatestByCountries(countryIds: string[]): Promise<Record<string, Vaccination>>
 }

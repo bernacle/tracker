@@ -2,10 +2,10 @@ import type { CovidCase } from "@prisma/client"
 
 export interface CovidCasesRepository {
   findByMultipleCountries(
-    countryIds: number[],
+    countryIds: string[],
     startDate: Date,
     endDate: Date
-  ): Promise<Record<number, CovidCase[]>>
+  ): Promise<Record<string, CovidCase[]>>
 
-  findLatestByCountries(countryIds: number[]): Promise<Record<number, CovidCase>>
+  findLatestByCountries(countryIds: string[]): Promise<Record<string, CovidCase>>
 }

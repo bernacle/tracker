@@ -25,7 +25,7 @@ export interface Filters {
 }
 
 export interface CountriesRepository {
-  findById(id: number): Promise<Country | null>
+  findById(id: string): Promise<Country | null>
   findByIsoCode(isoCode: string): Promise<Country | null>
   findAll(filters?: Filters): Promise<Country[]>
 }

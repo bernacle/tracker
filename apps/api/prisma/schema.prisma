@@ -29,7 +29,7 @@ model SavedSearch {
 }
 
 model Country {
-  id                      Int     @id @default(autoincrement())
+  id                      String  @id @default(uuid())
   name                    String  @unique
   isoCode                 String  @unique @map("iso_code")
   continent               String?
@@ -59,21 +59,21 @@ model Country {
 }
 
 model CovidCase {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(uuid())
   date        DateTime
   newCases    Int?     @map("new_cases")
   totalCases  Int?     @map("total_cases")
   newDeaths   Int?     @map("new_deaths")
   totalDeaths Int?     @map("total_deaths")
 
-  countryId Int     @map("country_id")
+  countryId String  @map("country_id")
   country   Country @relation(fields: [countryId], references: [id])
 
   @@map("covid_cases")
 }
 
 model Vaccination {
-  id                                                Int      @id @default(autoincrement())
+  id                                                String   @id @default(uuid())
   date                                              DateTime
   totalVaccinations                                 Float?   @map("total_vaccinations")
   peopleVaccinated                                  Float?   @map("people_vaccinated")
@@ -103,44 +103,44 @@ model Vaccination {
   rollingVaccinations12m                            Float?   @map("rolling_vaccinations_12m")
   rollingVaccinations12mPerHundred                  Float?   @map("rolling_vaccinations_12m_per_hundred")
 
-  countryId Int     @map("country_id")
+  countryId String  @map("country_id")
   country   Country @relation(fields: [countryId], references: [id])
 
   @@map("vaccinations")
 }
 
 model VaccinationByAge {
-  id                              Int      @id @default(autoincrement())
+  id                              String   @id @default(uuid())
   date                            DateTime
   ageGroup                        String   @map("age_group")
   peopleVaccinatedPerHundred      Float?   @map("people_vaccinated_per_hundred")
   peopleFullyVaccinatedPerHundred Float?   @map("people_fully_vaccinated_per_hundred")
   peopleWithBoosterPerHundred     Float?   @map("people_with_booster_per_hundred")
 
-  countryId Int     @map("country_id")
+  countryId String  @map("country_id")
   country   Country @relation(fields: [countryId], references: [id])
 
   @@map("vaccinations_by_age")
 }
 
 model VaccinationByManufacturer {
-  id                Int      @id @default(autoincrement())
+  id                String   @id @default(uuid())
   date              DateTime
   vaccine           String
   totalVaccinations Int?     @map("total_vaccinations")
 
-  countryId Int     @map("country_id")
+  countryId String  @map("country_id")
   country   Country @relation(fields: [countryId], references: [id])
 
   @@map("vaccinations_by_manufacturer")
 }
 
 model LifeExpectancy {
-  id             Int   @id @default(autoincrement())
+  id             String @id @default(uuid())
   year           Int
   lifeExpectancy Float
 
-  countryId Int     @map("country_id")
+  countryId String  @map("country_id")
   country   Country @relation(fields: [countryId], references: [id])
 
   @@map("lives_expectancy")

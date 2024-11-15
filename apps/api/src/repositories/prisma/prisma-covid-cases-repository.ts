@@ -4,10 +4,10 @@ import type { CovidCasesRepository } from "../covid-cases-repository"
 
 export class PrismaCovidCaseRepository implements CovidCasesRepository {
   async findByMultipleCountries(
-    countryIds: number[],
+    countryIds: string[],
     startDate: Date,
     endDate: Date
-  ): Promise<Record<number, CovidCase[]>> {
+  ): Promise<Record<string, CovidCase[]>> {
     const cases = await prisma.covidCase.findMany({
       where: {
         countryId: { in: countryIds },
@@ -27,10 +27,10 @@ export class PrismaCovidCaseRepository implements CovidCasesRepository {
       }
       acc[curr.countryId].push(curr)
       return acc
-    }, {} as Record<number, CovidCase[]>)
+    }, {} as Record<string, CovidCase[]>)
   }
 
-  async findLatestByCountries(countryIds: number[]): Promise<Record<number, CovidCase>> {
+  async findLatestByCountries(countryIds: string[]): Promise<Record<string, CovidCase>> {
     const latestCases = await prisma.covidCase.findMany({
       where: {
         countryId: { in: countryIds }
@@ -44,6 +44,6 @@ export class PrismaCovidCaseRepository implements CovidCasesRepository {
     return latestCases.reduce((acc, curr) => {
       acc[curr.countryId] = curr
       return acc
-    }, {} as Record<number, CovidCase>)
+    }, {} as Record<string, CovidCase>)
   }
 }

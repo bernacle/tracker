@@ -20,7 +20,6 @@ async function updatePopulation() {
             data: { population: parseFloat(row.population) || null },
           });
         } catch (error) {
-          console.error(`Error on updatePopulation for ${row.entity}: ${error.message}`);
         }
       }
       await prisma.$disconnect();

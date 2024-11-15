@@ -4,7 +4,7 @@ import type { VaccinationsRepository } from "../vaccinations-repository"
 
 export class PrismaVaccinationRepository implements VaccinationsRepository {
   async findManyByCountriesAndDateRange(
-    countryIds: number[],
+    countryIds: string[],
     startDate: Date,
     endDate: Date
   ) {
@@ -29,12 +29,12 @@ export class PrismaVaccinationRepository implements VaccinationsRepository {
       acc[curr.countryId].push(curr)
       return acc
     }
-      , {} as Record<number, Vaccination[]>)
+      , {} as Record<string, Vaccination[]>)
   }
 
 
   async findByManufacturer(
-    countryId: number,
+    countryId: string,
     startDate: Date,
     endDate: Date
   ): Promise<VaccinationByManufacturer[]> {
@@ -53,7 +53,7 @@ export class PrismaVaccinationRepository implements VaccinationsRepository {
   }
 
   async findByAgeGroup(
-    countryId: number,
+    countryId: string,
     startDate: Date,
     endDate: Date
   ): Promise<VaccinationByAge[]> {
@@ -71,7 +71,7 @@ export class PrismaVaccinationRepository implements VaccinationsRepository {
     })
   }
 
-  async findLatestByCountries(countryIds: number[]): Promise<Record<number, Vaccination>> {
+  async findLatestByCountries(countryIds: string[]): Promise<Record<string, Vaccination>> {
     const latestVaccinations = await prisma.vaccination.findMany({
       where: {
         countryId: { in: countryIds }
@@ -85,6 +85,6 @@ export class PrismaVaccinationRepository implements VaccinationsRepository {
     return latestVaccinations.reduce((acc, curr) => {
       acc[curr.countryId] = curr
       return acc
-    }, {} as Record<number, Vaccination>)
+    }, {} as Record<string, Vaccination>)
   }
 }

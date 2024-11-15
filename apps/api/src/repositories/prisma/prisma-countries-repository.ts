@@ -3,7 +3,7 @@ import type { Country } from "@prisma/client";
 import type { CountriesRepository, Filters } from "../countries-repository";
 
 export class PrismaCountriesRepository implements CountriesRepository {
-  async findById(id: number): Promise<Country | null> {
+  async findById(id: string): Promise<Country | null> {
     return await prisma.country.findUnique({
       where: { id }
     })
