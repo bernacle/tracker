@@ -1,3 +1,5 @@
+import fastifyCors from '@fastify/cors';
+
 import fastifyJwt from '@fastify/jwt';
 import { env } from '@tracker/env';
 import fastify from 'fastify';
@@ -14,6 +16,9 @@ app.register(fastifyJwt, {
     expiresIn: '1h',
   },
 })
+
+app.register(fastifyCors)
+
 
 app.register(async function publicRoutes(app) {
   app.get('/health', async (request, reply) => {

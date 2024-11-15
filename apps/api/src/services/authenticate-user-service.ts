@@ -3,11 +3,11 @@ import type { User } from "@prisma/client"
 import { compare } from "bcryptjs"
 import { InvalidCredentialsError } from "./errors/invalid-credentials-error"
 
-interface AuthenticateServiceRequest {
+type AuthenticateServiceRequest = {
   email: string
   password: string
 }
-interface AuthenticateServiceResponse {
+type AuthenticateServiceResponse = {
   user: User
 }
 

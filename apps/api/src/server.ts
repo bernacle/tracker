@@ -6,4 +6,4 @@ app
     host: '0.0.0.0',
     port: env.SERVER_PORT,
   })
-  .then(() => console.log('🚀 HTTP Server running.'))
+  .then(() => console.log(`🚀 HTTP Server running in port ${env.SERVER_PORT}`))

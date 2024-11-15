@@ -1,6 +1,6 @@
 import type { Country } from "@prisma/client";
 
-export interface Filters {
+export type Filters = {
   isoCodes?: string[];
   continent?: string;
   incomeGroup?: string;

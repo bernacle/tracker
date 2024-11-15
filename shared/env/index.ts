@@ -9,7 +9,7 @@ export const env = createEnv({
   },
   client: {},
   shared: {
-    NEXT_PUBLIC_API_URL: z.string().url().default('http://localhost:9000'),
+    NEXT_PUBLIC_API_URL: z.string().url().default('http://127.0.0.1:3333'),
   },
   runtimeEnv: {
     SERVER_PORT: process.env.SERVER_PORT,
