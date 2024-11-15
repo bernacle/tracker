@@ -7,6 +7,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  passwordHash  String        @map("password_hash")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  savedSearches SavedSearch[]
+
+  @@map("users")
+}
+
+model SavedSearch {
+  id       Int    @id @default(autoincrement())
+  name     String
+  criteria Json
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("saved_searches")
+}
+
 model Country {
   id                      Int     @id @default(autoincrement())
   name                    String  @unique
