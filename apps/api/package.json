@@ -20,6 +20,7 @@
     "@fastify/jwt": "^9.0.1",
     "@prisma/client": "^5.22.0",
     "@tracker/env": "workspace:*",
+    "adm-zip": "^0.5.16",
     "bcryptjs": "^2.4.3",
     "csv-parser": "^3.0.0",
     "fastify": "^5.1.0",
