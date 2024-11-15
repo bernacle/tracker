@@ -15,7 +15,7 @@ export type DemographicFilters = {
   smokerGender?: 'male' | 'female';
 };
 
-type CompareDataParams = {
+export type CompareDataParams = {
   baseline: {
     countries?: string[];
     demographics?: DemographicFilters;
