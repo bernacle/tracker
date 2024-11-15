@@ -13,13 +13,11 @@ beforeEach(() => {
     mockVaccinationsRepository
   );
 
-  // Reset mocks before each test
   vi.clearAllMocks();
 });
 
 describe('CompareDataService', () => {
   it('should fetch only baseline data when comparison is not provided', async () => {
-    // Arrange
     const mockCountries = [mockBaselineCountry];
     const mockCovidData = [{ countryId: 1, newCases: 10, totalCases: 100 }];
     const mockVaccinationData = [{ countryId: 1, peopleVaccinated: 500 }];
@@ -39,10 +37,8 @@ describe('CompareDataService', () => {
       },
     };
 
-    // Act
     const result = await service.execute(params);
 
-    // Assert
     expect(mockCountriesRepository.findAll).toHaveBeenCalledWith({
       isoCodes: ['CA'],
       continent: undefined,
@@ -75,7 +71,6 @@ describe('CompareDataService', () => {
   });
 
   it('should fetch both baseline and comparison data when both are provided', async () => {
-    // Arrange
     const mockBaselineCountries = [mockBaselineCountry];
     const mockComparisonCountries = [mockComparisonCountry];
     const mockCovidData = [{ countryId: 1, newCases: 10, totalCases: 100 }];
@@ -84,14 +79,14 @@ describe('CompareDataService', () => {
     const mockComparisonVaccinationData = [{ countryId: 2, peopleVaccinated: 1000 }];
 
     mockCountriesRepository.findAll = vi.fn()
-      .mockResolvedValueOnce(mockBaselineCountries) // For baseline
-      .mockResolvedValueOnce(mockComparisonCountries); // For comparison
+      .mockResolvedValueOnce(mockBaselineCountries)
+      .mockResolvedValueOnce(mockComparisonCountries);
     mockCovidCasesRepository.findByMultipleCountries = vi.fn()
-      .mockResolvedValueOnce({ 1: mockCovidData }) // For baseline
-      .mockResolvedValueOnce({ 2: mockComparisonCovidData }); // For comparison
+      .mockResolvedValueOnce({ 1: mockCovidData })
+      .mockResolvedValueOnce({ 2: mockComparisonCovidData });
     mockVaccinationsRepository.findManyByCountriesAndDateRange = vi.fn()
-      .mockResolvedValueOnce({ 1: mockVaccinationData }) // For baseline
-      .mockResolvedValueOnce({ 2: mockComparisonVaccinationData }); // For comparison
+      .mockResolvedValueOnce({ 1: mockVaccinationData })
+      .mockResolvedValueOnce({ 2: mockComparisonVaccinationData });
 
     const params = {
       baseline: {
@@ -108,10 +103,8 @@ describe('CompareDataService', () => {
       },
     };
 
-    // Act
     const result = await service.execute(params);
 
-    // Assert
     expect(mockCountriesRepository.findAll).toHaveBeenCalledTimes(2);
     expect(mockCovidCasesRepository.findByMultipleCountries).toHaveBeenCalledTimes(2);
     expect(mockVaccinationsRepository.findManyByCountriesAndDateRange).toHaveBeenCalledTimes(2);

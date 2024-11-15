@@ -18,6 +18,7 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@tracker/env": "workspace:*",
+    "bcryptjs": "^2.4.3",
     "csv-parser": "^3.0.0",
     "fastify": "^5.1.0",
     "vite-tsconfig-paths": "4.0.7",
@@ -27,6 +28,7 @@
     "@tracker/eslint-config": "workspace:*",
     "@tracker/prettier": "workspace:*",
     "@tracker/tsconfig": "workspace:*",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.17.6",
     "cli-progress": "^3.12.0",
     "dotenv-cli": "^7.4.2",

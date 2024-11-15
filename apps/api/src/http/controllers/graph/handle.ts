@@ -8,7 +8,7 @@ import { z } from "zod";
 export async function handle(request: FastifyRequest, reply: FastifyReply) {
   const graphSchema = z.object({
     baseline: z.object({
-      countries: z.array(z.string()).optional(), // ISO country codes
+      countries: z.array(z.string()).optional(),
       demographics: z
         .object({
           minPopulation: z.number().optional(),
@@ -25,7 +25,7 @@ export async function handle(request: FastifyRequest, reply: FastifyReply) {
     }),
     comparison: z
       .object({
-        countries: z.array(z.string()).optional(), // ISO country codes
+        countries: z.array(z.string()).optional(),
         demographics: z
           .object({
             minPopulation: z.number().optional(),
