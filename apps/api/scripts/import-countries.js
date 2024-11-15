@@ -40,6 +40,7 @@ async function importCountries() {
           for (const row of records) {
             const countryName = row.owid ? row.owid.toLowerCase().trim() : null;
             const isoCode = row.iso3 ? row.iso3.toUpperCase().trim() : null;
+            const continent = row.continent ? row.continent.toLowerCase().trim() : null;
 
             if (isoCode && countryName) {
               try {
@@ -52,6 +53,7 @@ async function importCountries() {
                     data: {
                       name: countryName,
                       isoCode: isoCode,
+                      ...(continent && { continent })
                     },
                   });
                   insertedCount++;
