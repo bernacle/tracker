@@ -17,7 +17,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useEffect, useState } from 'react'
-import type { Demographics, DemographicsFormProps } from './types'
+import type { DataSection, Demographics, DemographicsFormProps } from './types'
+
+// Utility function to capitalize the first letter of each word
+function capitalizeWords(str: string): string {
+  return str
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
 
 const CONTINENTS = [
   { value: 'africa', label: 'Africa' },
@@ -39,26 +47,38 @@ export function DemographicsForm({
   onSubmit,
   isComparison = false,
   defaultValues,
+  availableCountries = [],
 }: DemographicsFormProps) {
-  const [demographics, setDemographics] = useState<Demographics>(
-    defaultValues || {}
-  )
+  const [formData, setFormData] = useState<DataSection>({
+    countries: defaultValues?.countries || [],
+    demographics: defaultValues?.demographics || {},
+  })
 
   useEffect(() => {
     if (defaultValues) {
-      setDemographics(defaultValues)
+      setFormData(defaultValues)
     }
   }, [defaultValues])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(demographics)
+    onSubmit(formData)
   }
 
-  const updateField = (field: keyof Demographics, value: any) => {
-    setDemographics((prev) => ({
+  const updateDemographics = (field: keyof Demographics, value: any) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value,
+      demographics: {
+        ...prev.demographics,
+        [field]: value,
+      },
+    }))
+  }
+
+  const handleCountryChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      countries: [value], // For now single selection, we can make it multi-select later
     }))
   }
 
@@ -66,75 +86,57 @@ export function DemographicsForm({
     <Card>
       <CardHeader>
         <CardTitle>
-          {isComparison ? 'Comparison Demographics' : 'Baseline Demographics'}
+          {isComparison ? 'Comparison Selection' : 'Baseline Selection'}
         </CardTitle>
         <CardDescription>
-          Select demographic parameters for{' '}
-          {isComparison ? 'comparison' : 'baseline'} data
+          Select country and demographic parameters
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <Select
+            value={formData.countries[0]}
+            onValueChange={handleCountryChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Country" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableCountries
+                .sort((a, b) =>
+                  capitalizeWords(a.name).localeCompare(capitalizeWords(b.name))
+                )
+                .map((country) => (
+                  <SelectItem key={country.id} value={country.id}>
+                    {capitalizeWords(country.name)}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+
+          {/* Rest of the form remains the same */}
           <div className="grid grid-cols-2 gap-4">
             <Input
               type="number"
               placeholder="Min Population"
-              value={demographics.minPopulation || ''}
+              value={formData.demographics?.minPopulation || ''}
               onChange={(e) =>
-                updateField('minPopulation', Number(e.target.value))
+                updateDemographics('minPopulation', Number(e.target.value))
               }
             />
             <Input
               type="number"
               placeholder="Max Population"
-              value={demographics.maxPopulation || ''}
+              value={formData.demographics?.maxPopulation || ''}
               onChange={(e) =>
-                updateField('maxPopulation', Number(e.target.value))
-              }
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              type="number"
-              placeholder="Min Median Age"
-              value={demographics.minMedianAge || ''}
-              onChange={(e) =>
-                updateField('minMedianAge', Number(e.target.value))
-              }
-            />
-            <Input
-              type="number"
-              placeholder="Max Median Age"
-              value={demographics.maxMedianAge || ''}
-              onChange={(e) =>
-                updateField('maxMedianAge', Number(e.target.value))
-              }
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              type="number"
-              placeholder="Min GDP per Capita"
-              value={demographics.minGdpPerCapita || ''}
-              onChange={(e) =>
-                updateField('minGdpPerCapita', Number(e.target.value))
-              }
-            />
-            <Input
-              type="number"
-              placeholder="Max GDP per Capita"
-              value={demographics.maxGdpPerCapita || ''}
-              onChange={(e) =>
-                updateField('maxGdpPerCapita', Number(e.target.value))
+                updateDemographics('maxPopulation', Number(e.target.value))
               }
             />
           </div>
 
           <Select
-            value={demographics.continent}
-            onValueChange={(value) => updateField('continent', value)}
+            value={formData.demographics?.continent}
+            onValueChange={(value) => updateDemographics('continent', value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select Continent" />
@@ -149,8 +151,8 @@ export function DemographicsForm({
           </Select>
 
           <Select
-            value={demographics.incomeGroup}
-            onValueChange={(value) => updateField('incomeGroup', value)}
+            value={formData.demographics?.incomeGroup}
+            onValueChange={(value) => updateDemographics('incomeGroup', value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select Income Group" />
@@ -165,9 +167,9 @@ export function DemographicsForm({
           </Select>
 
           <Select
-            value={demographics.smokerGender}
+            value={formData.demographics?.smokerGender}
             onValueChange={(value: 'male' | 'female') =>
-              updateField('smokerGender', value)
+              updateDemographics('smokerGender', value)
             }
           >
             <SelectTrigger>

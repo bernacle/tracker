@@ -10,15 +10,14 @@ export interface Demographics {
   smokerGender?: 'male' | 'female'
 }
 
+export interface DataSection {
+  countries: string[]
+  demographics?: Demographics
+}
+
 export interface GraphRequest {
-  baseline: {
-    countries?: string[]
-    demographics?: Demographics
-  }
-  comparison?: {
-    countries?: string[]
-    demographics?: Demographics
-  }
+  baseline: DataSection
+  comparison?: DataSection
   dateRange: {
     startDate: string
     endDate: string
@@ -31,8 +30,6 @@ export interface CovidData {
   totalCases: number
   newDeaths: number
   totalDeaths: number
-  countryId: string
-  countryName?: string
 }
 
 export interface CovidDataResponse {
@@ -40,14 +37,11 @@ export interface CovidDataResponse {
   comparison?: CovidData[]
 }
 
-export interface ChartData extends CovidData {
-  formattedDate: string
-}
-
 export interface DemographicsFormProps {
-  onSubmit: (demographics: Demographics) => void
+  onSubmit: (data: DataSection) => void
   isComparison?: boolean
-  defaultValues?: Demographics
+  defaultValues?: DataSection
+  availableCountries: Array<{ id: string; name: string }>
 }
 
 export interface ChartProps {

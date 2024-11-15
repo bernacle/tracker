@@ -2,11 +2,13 @@
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { fetchCountries, type Country } from '@/http/requests/fetch-countries'
+import { fetchData } from '@/http/requests/graph'
 import { AlertCircle, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CovidCharts } from './covid-charts'
 import { DemographicsForm } from './demographics-form'
-import type { Demographics, GraphRequest } from './types'
+import type { CovidData, DataSection, GraphRequest } from './types'
 
 const DEFAULT_DATE_RANGE = {
   startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -16,45 +18,64 @@ const DEFAULT_DATE_RANGE = {
 export default function CovidTracking() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [baselineData, setBaselineData] = useState([])
-  const [comparisonData, setComparisonData] = useState([])
+  const [countries, setCountries] = useState<Array<Country>>([])
+  const [baselineData, setBaselineData] = useState<CovidData[]>([])
+  const [comparisonData, setComparisonData] = useState<CovidData[]>([])
   const [request, setRequest] = useState<GraphRequest>({
-    baseline: {},
+    baseline: {
+      countries: [],
+      demographics: {},
+    },
     dateRange: DEFAULT_DATE_RANGE,
   })
 
-  const handleBaselineDemographics = (demographics: Demographics) => {
+  useEffect(() => {
+    const loadCountries = async () => {
+      try {
+        const { countries } = await fetchCountries()
+        setCountries(countries)
+      } catch (err) {
+        setError('Failed to load countries')
+      }
+    }
+    loadCountries()
+  }, [])
+
+  const handleBaselineSubmit = (data: DataSection) => {
     setRequest((prev) => ({
       ...prev,
-      baseline: { ...prev.baseline, demographics },
+      baseline: data,
     }))
   }
 
-  const handleComparisonDemographics = (demographics: Demographics) => {
+  const handleComparisonSubmit = (data: DataSection) => {
     setRequest((prev) => ({
       ...prev,
-      comparison: { demographics },
+      comparison: data,
     }))
+  }
+
+  const toggleComparison = () => {
+    setRequest((prev) => ({
+      ...prev,
+      comparison: prev.comparison
+        ? undefined
+        : { countries: [], demographics: {} },
+    }))
+    setComparisonData([])
   }
 
   const handleFetchData = async () => {
+    if (request.baseline.countries.length === 0) {
+      setError('Please select at least one country for baseline data')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
-      const response = await fetch('/api/covid-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch data')
-      }
-
-      const data = await response.json()
+      const data = await fetchData(request)
       setBaselineData(data.baseline)
       setComparisonData(data.comparison || [])
     } catch (err) {
@@ -64,20 +85,13 @@ export default function CovidTracking() {
     }
   }
 
-  const toggleComparison = () => {
-    setRequest((prev) => ({
-      ...prev,
-      comparison: prev.comparison ? undefined : {},
-    }))
-    setComparisonData([])
-  }
-
   return (
     <div className="container mx-auto space-y-6 p-4">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <DemographicsForm
-          onSubmit={handleBaselineDemographics}
-          isComparison={false}
+          onSubmit={handleBaselineSubmit}
+          availableCountries={countries}
+          defaultValues={request.baseline}
         />
 
         <div className="space-y-4">
@@ -91,8 +105,10 @@ export default function CovidTracking() {
 
           {request.comparison && (
             <DemographicsForm
-              onSubmit={handleComparisonDemographics}
-              isComparison={true}
+              onSubmit={handleComparisonSubmit}
+              isComparison
+              availableCountries={countries}
+              defaultValues={request.comparison}
             />
           )}
         </div>
@@ -101,7 +117,7 @@ export default function CovidTracking() {
       <div className="flex justify-center">
         <Button
           onClick={handleFetchData}
-          disabled={loading}
+          disabled={loading || request.baseline.countries.length === 0}
           className="w-full md:w-auto"
         >
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
