@@ -64,3 +64,4 @@ config/**/pnpm-lock.yaml
 # Generated Typescript files
 **/*.d.ts
 tsconfig.tsbuildinfo
+apps/api/data/csv/*.csv
