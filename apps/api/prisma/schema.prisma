@@ -37,7 +37,6 @@ model Country {
   populationDensity       Float?  @map("population_density")
   medianAge               Float?  @map("median_age")
   aged65Older             Float?  @map("aged_65_older")
-  aged70Older             Float?  @map("aged_70_older")
   gdpPerCapita            Float?  @map("gdp_per_capita")
   extremePoverty          Float?  @map("extreme_poverty")
   cardiovascDeathRate     Float?  @map("cardiovasc_death_rate")
@@ -46,7 +45,6 @@ model Country {
   maleSmokers             Float?  @map("male_smokers")
   handwashingFacilities   Float?  @map("handwashing_facilities")
   hospitalBedsPerThousand Float?  @map("hospital_beds_per_thousand")
-  lifeExpectancy          Float?  @map("life_expectancy")
   humanDevelopmentIndex   Float?  @map("human_development_index")
   incomeGroup             String? @map("income_group")
 

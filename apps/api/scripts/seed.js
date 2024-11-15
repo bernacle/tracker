@@ -1,4 +1,9 @@
 const importCountries = require('./import-countries');
+const importCovidCases = require('./import-covid-cases');
+const importLifeExpectancy = require('./import-life-expectancy');
+const importVaccinations = require('./import-vaccinations');
+const importVaccinationsByAge = require('./import-vaccinations-age');
+const importVaccinationsByManufacturer = require('./import-vaccinations-manufacturer');
 const updateAged65Older = require('./update-aged-65-older');
 const updateDiabetesPrevalence = require('./update-diabetes-prevalence');
 const updateIncomeGroup = require('./update-income-group');
@@ -6,14 +11,15 @@ const updateExtremePoverty = require('./update-extreme-poverty');
 const updateFemaleSmokers = require('./update-female-smokers');
 const updateGdpPerCapita = require('./update-gdp-per-capita');
 const updateMaleSmokers = require('./update-male-smokers');
+const updatePopulation = require('./update-population');
 const updatePopulationDensity = require('./update-population-density');
-const importCovidCases = require('./import-covid-cases');
-const importLifeExpectancy = require('./import-life-expectancy');
-const importVaccinations = require('./import-vaccinations');
-const importVaccinationsByAge = require('./import-vaccinations-age');
-const importVaccinationsByManufacturer = require('./import-vaccinations-manufacturer');
-const { PrismaClient } = require('@prisma/client');
 const multibar = require('./progress-bar');
+const { PrismaClient } = require('@prisma/client');
+const updateMedianAge = require('./update-median-age');
+const updateCardiovascDeathRate = require('./update-cardiovasc-death-rate');
+const updateHandwashingFacilities = require('./update-handwashing-facilities');
+const updateHumanIndex = require('./update-human-development-index');
+const updateHospitalBeds = require('./update-hospital-beds');
 
 const prisma = new PrismaClient();
 
@@ -55,7 +61,13 @@ async function seedDatabase() {
       updateFemaleSmokers(),
       updateGdpPerCapita(),
       updateMaleSmokers(),
-      updatePopulationDensity()
+      updatePopulation(),
+      updatePopulationDensity(),
+      updateMedianAge(),
+      updateCardiovascDeathRate(),
+      updateHandwashingFacilities(),
+      updateHumanIndex(),
+      updateHospitalBeds()
     ];
 
     await Promise.all(updates);

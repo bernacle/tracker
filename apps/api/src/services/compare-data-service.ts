@@ -3,7 +3,7 @@ import type { CovidCasesRepository } from "@/repositories/covid-cases-repository
 import type { VaccinationsRepository } from "@/repositories/vaccinations-repository";
 import type { Country } from "@prisma/client";
 
-type DemographicFilters = {
+export type DemographicFilters = {
   minPopulation?: number;
   maxPopulation?: number;
   minMedianAge?: number;

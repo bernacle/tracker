@@ -5,9 +5,9 @@ const csv = require('csv-parser');
 
 const prisma = new PrismaClient();
 
-async function updateIncomeGroup() {
+async function updatePopulation() {
   const records = [];
-  const filePath = path.join(__dirname, '../data/csv/income_groups.csv');
+  const filePath = path.join(__dirname, '../data/csv/population.csv');
 
   fs.createReadStream(filePath)
     .pipe(csv())
@@ -16,16 +16,15 @@ async function updateIncomeGroup() {
       for (const row of records) {
         try {
           await prisma.country.updateMany({
-            where: { isoCode: row.Code },
-            data: { incomeGroup: row['Income group'].toLowerCase().trim() || null },
+            where: { isoCode: row.iso_code },
+            data: { population: parseFloat(row.population) || null },
           });
         } catch (error) {
-          console.error(`Error on updateIncomeGroup for ${row.Country}: ${error.message}`);
+          console.error(`Error on updatePopulation for ${row.entity}: ${error.message}`);
         }
       }
       await prisma.$disconnect();
     });
 }
 
-module.exports = updateIncomeGroup;
-
+module.exports = updatePopulation;
