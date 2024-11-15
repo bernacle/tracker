@@ -15,7 +15,6 @@ async function importCountries() {
     let processedCount = 0;
     let insertedCount = 0;
 
-    // Count total records
     const totalRecords = await new Promise((countResolve) => {
       let count = 0;
       fs.createReadStream(filePath)
@@ -62,7 +61,6 @@ async function importCountries() {
                 progressBar.update(processedCount);
 
               } catch (error) {
-                // Only log serious errors, not duplicates
                 if (!error.message.includes('Unique constraint')) {
                   console.error(`Error: ${isoCode} - ${error.message}`);
                 }
