@@ -1,1 +1,2 @@
 apps/api/data/csv/cases_deaths.csv filter=lfs diff=lfs merge=lfs -text
+apps/api/data/csv/vaccinations.csv filter=lfs diff=lfs merge=lfs -text
