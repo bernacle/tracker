@@ -16,25 +16,24 @@ export class PrismaCountriesRepository implements CountriesRepository {
   async findAll(filters?: Filters): Promise<Country[]> {
     return prisma.country.findMany({
       where: {
+        isoCode: filters?.isoCodes ? { in: filters.isoCodes } : undefined,
         continent: filters?.continent,
         incomeGroup: filters?.incomeGroup,
         population: {
           gte: filters?.population?.gte,
-          lte: filters?.population?.lte
+          lte: filters?.population?.lte,
         },
         medianAge: {
           gte: filters?.medianAge?.gte,
-          lte: filters?.medianAge?.lte
+          lte: filters?.medianAge?.lte,
         },
         gdpPerCapita: {
           gte: filters?.gdpPerCapita?.gte,
-          lte: filters?.gdpPerCapita?.lte
+          lte: filters?.gdpPerCapita?.lte,
         },
-        hospitalBedsPerThousand: {
-          gte: filters?.hospitalBedsPerThousand?.gte,
-          lte: filters?.hospitalBedsPerThousand?.lte
-        }
-      }
-    })
+        maleSmokers: filters?.maleSmokers,
+        femaleSmokers: filters?.femaleSmokers,
+      },
+    });
   }
 }

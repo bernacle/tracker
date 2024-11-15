@@ -3,14 +3,14 @@ import type { Vaccination, VaccinationByAge, VaccinationByManufacturer } from "@
 import type { VaccinationsRepository } from "../vaccinations-repository"
 
 export class PrismaVaccinationRepository implements VaccinationsRepository {
-  async findByCountryAndDateRange(
-    countryId: number,
+  async findManyByCountriesAndDateRange(
+    countryIds: number[],
     startDate: Date,
     endDate: Date
-  ): Promise<Vaccination[]> {
-    return prisma.vaccination.findMany({
+  ) {
+    const vaccinations = await prisma.vaccination.findMany({
       where: {
-        countryId,
+        countryId: { in: countryIds },
         date: {
           gte: startDate,
           lte: endDate
@@ -20,7 +20,18 @@ export class PrismaVaccinationRepository implements VaccinationsRepository {
         date: 'asc'
       }
     })
+
+    return vaccinations.reduce((acc, curr) => {
+      if (!acc[curr.countryId]) {
+        acc[curr.countryId] = []
+
+      }
+      acc[curr.countryId].push(curr)
+      return acc
+    }
+      , {} as Record<number, Vaccination[]>)
   }
+
 
   async findByManufacturer(
     countryId: number,

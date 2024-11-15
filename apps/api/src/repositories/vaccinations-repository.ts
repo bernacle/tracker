@@ -1,11 +1,11 @@
 import type { Vaccination, VaccinationByAge, VaccinationByManufacturer } from "@prisma/client"
 
 export interface VaccinationsRepository {
-  findByCountryAndDateRange(
-    countryId: number,
+  findManyByCountriesAndDateRange(
+    countryIds: number[],
     startDate: Date,
     endDate: Date
-  ): Promise<Vaccination[]>
+  ): Promise<Record<number, Vaccination[]>>
 
   findByManufacturer(
     countryId: number,

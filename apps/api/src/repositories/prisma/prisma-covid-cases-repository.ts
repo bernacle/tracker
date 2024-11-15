@@ -3,26 +3,6 @@ import type { CovidCase } from "@prisma/client"
 import type { CovidCasesRepository } from "../covid-cases-repository"
 
 export class PrismaCovidCaseRepository implements CovidCasesRepository {
-
-  async findByCountryAndDateRange(
-    countryId: number,
-    startDate: Date,
-    endDate: Date
-  ): Promise<CovidCase[]> {
-    return prisma.covidCase.findMany({
-      where: {
-        countryId,
-        date: {
-          gte: startDate,
-          lte: endDate
-        }
-      },
-      orderBy: {
-        date: 'asc'
-      }
-    })
-  }
-
   async findByMultipleCountries(
     countryIds: number[],
     startDate: Date,

@@ -1,12 +1,27 @@
-import type { Country } from "@prisma/client"
+import type { Country } from "@prisma/client";
 
-export type Filters = {
-  continent?: string
-  incomeGroup?: string
-  population?: { gte?: number; lte?: number }
-  medianAge?: { gte?: number; lte?: number }
-  gdpPerCapita?: { gte?: number; lte?: number }
-  hospitalBedsPerThousand?: { gte?: number; lte?: number }
+export interface Filters {
+  isoCodes?: string[];
+  continent?: string;
+  incomeGroup?: string;
+  population?: {
+    gte?: number;
+    lte?: number;
+  };
+  medianAge?: {
+    gte?: number;
+    lte?: number;
+  };
+  gdpPerCapita?: {
+    gte?: number;
+    lte?: number;
+  };
+  maleSmokers?: {
+    not?: null;
+  };
+  femaleSmokers?: {
+    not?: null;
+  };
 }
 
 export interface CountriesRepository {
