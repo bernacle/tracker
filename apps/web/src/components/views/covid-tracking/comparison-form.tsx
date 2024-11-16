@@ -1,8 +1,14 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -12,6 +18,7 @@ import {
 } from '@/components/ui/select'
 import { getSearches } from '@/http/requests/get-searches'
 import { saveSearch } from '@/http/requests/save-search'
+import { format } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { SavedSearchesModal } from '../saved-searches-modal'
 import { METRICS, METRIC_CATEGORIES } from './constants'
@@ -61,8 +68,8 @@ export function ComparisonForm({
     startDate: Date | undefined
     endDate: Date | undefined
   }>({
-    startDate: undefined,
-    endDate: undefined,
+    startDate: new Date('2019-12-01'),
+    endDate: new Date(),
   })
   const [searchName, setSearchName] = useState('')
 
@@ -254,6 +261,56 @@ export function ComparisonForm({
             </div>
           )}
         </div>
+
+        {selectedMetric && (
+          <div className="space-y-4">
+            <Label>Date Range (Optional)</Label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    {dateRange.startDate
+                      ? format(dateRange.startDate, 'PPP')
+                      : 'Start Date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.startDate}
+                    onSelect={(date) =>
+                      setDateRange((prev) => ({ ...prev, startDate: date }))
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    {dateRange.endDate
+                      ? format(dateRange.endDate, 'PPP')
+                      : 'End Date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.endDate}
+                    onSelect={(date) =>
+                      setDateRange((prev) => ({ ...prev, endDate: date }))
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        )}
 
         {selectedMetric && (
           <div className="space-y-2">
