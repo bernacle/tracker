@@ -3,7 +3,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import { graphSchema } from "./schemas";
 import { normalizeDemographics } from "./utils";
 
-export async function handle(request: FastifyRequest, reply: FastifyReply) {
+export async function data(request: FastifyRequest, reply: FastifyReply) {
   const parsedData = graphSchema.parse(request.body);
 
   const normalizedData = {

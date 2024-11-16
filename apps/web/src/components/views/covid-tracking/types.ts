@@ -1,51 +1,72 @@
-export interface Demographics {
-  minPopulation?: number
-  maxPopulation?: number
-  minMedianAge?: number
-  maxMedianAge?: number
-  minGdpPerCapita?: number
-  maxGdpPerCapita?: number
-  continent?: string
-  incomeGroup?: string
-  smokerGender?: 'male' | 'female'
+export const METRIC_CATEGORIES = {
+  DEMOGRAPHICS: 'DEMOGRAPHICS',
+  COVID: 'COVID',
+  VACCINATION: 'VACCINATION'
+} as const
+
+export type MetricCategory = typeof METRIC_CATEGORIES[keyof typeof METRIC_CATEGORIES]
+
+export type Country = {
+  id: string
+  name: string
 }
 
-export interface DataSection {
-  countries: string[]
-  demographics?: Demographics
-}
-
-export interface GraphRequest {
-  baseline: DataSection
-  comparison?: DataSection
-  dateRange: {
-    startDate: string
-    endDate: string
-  }
-}
-
-export interface CovidData {
+export type CovidData = {
+  id: string
   date: string
   newCases: number
   totalCases: number
   newDeaths: number
   totalDeaths: number
+  countryId: string
 }
 
-export interface CovidDataResponse {
-  baseline: CovidData[]
-  comparison?: CovidData[]
+export type VaccinationData = {
+  id: string
+  date: string
+  totalVaccinations: number
+  peopleVaccinated: number
+  peopleFullyVaccinated: number
+  totalVaccinationsPerHundred: number
+  [key: string]: string | number | null
 }
 
-export interface DemographicsFormProps {
-  onSubmit: (data: DataSection) => void
-  isComparison?: boolean
-  defaultValues?: DataSection
-  availableCountries: Array<{ id: string; name: string }>
+
+export type ChartData = {
+  covidData: CovidData[]
+  vaccinationData: VaccinationData[]
+  countries: Country[]
 }
 
-export interface ChartProps {
-  baselineData: CovidData[]
-  comparisonData?: CovidData[]
-  type?: 'cases' | 'deaths' | 'combined'
+export type CovidDataResponse = {
+  baseline: ChartData
+  comparison: ChartData
+}
+
+export type ComparisonData = {
+  baselineCountry: string
+  comparisonCountry: string
+  category: MetricCategory
+  metric: string
+  dateRange?: {
+    startDate: Date
+    endDate: Date
+  }
+}
+
+type ComparisonSection = {
+  countries: string[];
+  category: MetricCategory;
+  metric: string;
+}
+
+type DateRange = {
+  startDate: string;
+  endDate: string;
+}
+
+export type GraphRequest = {
+  baseline: ComparisonSection;
+  comparison?: ComparisonSection;
+  dateRange?: DateRange;
 }
