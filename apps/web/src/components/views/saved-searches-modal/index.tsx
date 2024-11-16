@@ -5,6 +5,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Search } from 'lucide-react'
+import { useState } from 'react'
 
 interface SavedSearch {
   id: string
@@ -20,21 +22,22 @@ interface SavedSearchesModalProps {
 }
 
 export function SavedSearchesModal({
-  isOpen,
-  onClose,
-  onSelectSearch,
-  savedSearches,
+  isOpen = false,
+  onClose = () => {},
+  onSelectSearch = () => {},
+  savedSearches = [],
 }: SavedSearchesModalProps) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#1a1b1e] text-white">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-white">
+          <DialogTitle className="text-xl font-semibold">
             Saved Searches
           </DialogTitle>
         </DialogHeader>
-
-        <div className="space-y-4">
+        <div className="mt-4 space-y-2">
           {savedSearches.length > 0 ? (
             savedSearches.map((search) => (
               <Button
@@ -44,13 +47,18 @@ export function SavedSearchesModal({
                   onClose()
                 }}
                 variant="ghost"
-                className="to-bg-[#1a1b1e] w-full bg-gradient-to-r from-indigo-500 shadow-sm shadow-zinc-950"
+                className="w-full justify-start text-left transition-all duration-200 ease-in-out hover:bg-indigo-100 dark:hover:bg-indigo-900/20"
               >
-                {search.name}
+                <div className="flex items-center space-x-3">
+                  <Search className="h-4 w-4 text-muted-foreground" />
+                  <span>{search.name}</span>
+                </div>
               </Button>
             ))
           ) : (
-            <p className="text-gray-400">No saved searches found.</p>
+            <p className="text-center text-muted-foreground">
+              No saved searches found.
+            </p>
           )}
         </div>
       </DialogContent>
