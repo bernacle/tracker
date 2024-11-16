@@ -1,15 +1,14 @@
 import type { Country } from '@prisma/client';
 
 export const mockBaselineCountry: Country = {
-  id: 1,
-  name: 'Country A',
-  isoCode: 'CA',
-  continent: 'Asia',
+  id: "66f85e86-8960-4e56-b3ad-ce3895e0b84d",
+  name: "Country A",
+  isoCode: "CA",
+  continent: "Asia",
   population: 1000000,
   populationDensity: null,
   medianAge: null,
   aged65Older: null,
-  aged70Older: null,
   gdpPerCapita: null,
   extremePoverty: null,
   cardiovascDeathRate: null,
@@ -18,21 +17,19 @@ export const mockBaselineCountry: Country = {
   maleSmokers: null,
   handwashingFacilities: null,
   hospitalBedsPerThousand: null,
-  lifeExpectancy: null,
   humanDevelopmentIndex: null,
   incomeGroup: null,
 };
 
 export const mockComparisonCountry: Country = {
-  id: 2,
-  name: 'Country B',
-  isoCode: 'CB',
-  continent: 'Europe',
+  id: "cf2a4c9b-3d8f-487f-91f9-f13a2e3d3c7c",
+  name: "Country B",
+  isoCode: "CB",
+  continent: "Europe",
   population: 2000000,
   populationDensity: null,
   medianAge: null,
   aged65Older: null,
-  aged70Older: null,
   gdpPerCapita: null,
   extremePoverty: null,
   cardiovascDeathRate: null,
@@ -41,7 +38,6 @@ export const mockComparisonCountry: Country = {
   maleSmokers: null,
   handwashingFacilities: null,
   hospitalBedsPerThousand: null,
-  lifeExpectancy: null,
   humanDevelopmentIndex: null,
   incomeGroup: null,
 };

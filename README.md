@@ -14,32 +14,42 @@ This project is a Turborepo monorepo that uses `pnpm` for package management.
    cd <repository-name>
    ```
 
-2. **Start the PostgreSQL database**
+2. **Copy environment variables**
+   Copy the content of `.env.example` to a new file named `.env`:
+   ```sh
+   cp .env.example .env
+   ```
+
+3. **Start the PostgreSQL database**
    Use Docker Compose to start the PostgreSQL service in the background:
    ```sh
    docker compose up -d
    ```
 
-3. **Install dependencies**
+4. **Install dependencies**
    Run `pnpm` to install all dependencies in the monorepo:
    ```sh
    pnpm install
    ```
 
-4. **Seed the database**
+5. **Seed the database**
    Run the seed script to populate the database:
    ```sh
    pnpm seed
    ```
 
-5. **Start the development server**
+6. **Start the development server**
    After seeding is complete, start the development servers:
    ```sh
    pnpm dev
    ```
 
 ## Notes
+
+To run the tests:
+```sh
+pnpm test
+```
 - The `docker compose up -d` command will create a PostgreSQL instance that the application depends on.
 - The seeding script must be run to populate the database with initial data before starting the app.
-
 
