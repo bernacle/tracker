@@ -97,6 +97,7 @@ export function ComparisonForm({
   }
 
   const resetStates = () => {
+    setSearchName('')
     setBaselineCountry('')
     setComparisonCountry(undefined)
     setSelectedCategory('')
