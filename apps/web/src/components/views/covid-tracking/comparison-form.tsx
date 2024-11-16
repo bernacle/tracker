@@ -241,7 +241,8 @@ export function ComparisonForm({
 
         <Button
           type="submit"
-          className="w-full"
+          variant="ghost"
+          className="to-bg-[#1a1b1e] w-full bg-gradient-to-r from-indigo-500 shadow-sm shadow-zinc-950"
           disabled={!baselineCountry || !selectedCategory || !selectedMetric}
         >
           Compare Data
