@@ -1,10 +1,9 @@
 'use client'
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertTriangle } from 'lucide-react'
+import { toast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -31,13 +30,16 @@ export function SignUpForm() {
         setSuccess(true)
         router.push('/auth/sign-in')
       } else {
-        setSuccess(false)
-        setMessage(response.message || 'Invalid input')
+        toast({
+          title: 'Error',
+          description: 'Invalid input',
+        })
       }
     } catch (error) {
-      console.error('Sign up error:', error)
-      setSuccess(false)
-      setMessage('An unexpected error occurred. Please try again.')
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+      })
     } finally {
       setIsPending(false)
     }
@@ -50,16 +52,6 @@ export function SignUpForm() {
         className="mx-auto max-w-md space-y-6"
         noValidate
       >
-        {success === false && message && (
-          <Alert variant="destructive">
-            <AlertTriangle className="size-4" />
-            <AlertTitle>Sign up failed!</AlertTitle>
-            <AlertDescription>
-              <p>{message}</p>
-            </AlertDescription>
-          </Alert>
-        )}
-
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold">sign up</h1>
         </div>

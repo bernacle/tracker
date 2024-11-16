@@ -38,16 +38,7 @@ export type VaccinationMetric =
   | 'peopleFullyVaccinated'
   | 'totalBoosters'
   | 'dailyVaccinations'
-  | 'dailyVaccinationsSmoothed'
-  | 'dailyPeopleVaccinatedSmoothed'
-  | 'totalVaccinationsPerHundred'
-  | 'peopleVaccinatedPerHundred'
-  | 'peopleFullyVaccinatedPerHundred'
-  | 'totalBoostersPerHundred'
-  | 'dailyPeopleVaccinatedSmoothedPerHundred'
-  | 'dailyVaccinationsSmoothedPerMillion'
   | 'peopleUnvaccinated'
-  | 'shareOfBoosters';
 
 export type Metric = CovidMetric | DemographicsMetric | VaccinationMetric;
 
@@ -142,3 +133,5 @@ type ComparisonSection = {
   category: MetricCategory;
   metric: string;
 };
+
+

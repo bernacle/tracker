@@ -1,13 +1,15 @@
 'use client'
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Card, CardContent } from '@/components/ui/card'
+import { toast } from '@/hooks/use-toast'
 import { fetchCountries } from '@/http/requests/fetch-countries'
 import { fetchData } from '@/http/requests/graph'
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { CountryChart } from './charts/country-chart'
+import { CovidCharts } from './charts/covid-charts'
+import { VaccinationChart } from './charts/vaccination-chart'
 import { ComparisonForm } from './comparison-form'
-import { CountryChart } from './country-chart'
-import { CovidCharts } from './covid-charts'
 import type {
   Category,
   ChartData,
@@ -19,7 +21,6 @@ import type {
   Metric,
   VaccinationMetric,
 } from './types'
-import { VaccinationChart } from './vaccination-chart'
 
 export default function CovidTracking() {
   const [loading, setLoading] = useState(false)
@@ -36,7 +37,10 @@ export default function CovidTracking() {
         const response = await fetchCountries()
         setCountries(response.countries)
       } catch (err) {
-        setError('Failed to load countries')
+        toast({
+          title: 'Error',
+          description: 'Failed to load countries',
+        })
       }
     }
 
@@ -92,56 +96,64 @@ export default function CovidTracking() {
       setBaselineData(responseData.baseline)
       setComparisonData(responseData.comparison || null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data')
+      toast({
+        title: 'Error',
+        description:
+          err instanceof Error ? err.message : 'Failed to fetch data',
+      })
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="container mx-auto space-y-6 p-4">
-      <ComparisonForm
-        onSubmit={handleComparisonSubmit}
-        availableCountries={countries}
-      />
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {loading && (
-        <div className="flex justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
+    <div className="container mx-auto p-6">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+        <div className="h-full">
+          <Card className="h-full border-border/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+            <CardContent className="p-6">
+              <ComparisonForm
+                onSubmit={handleComparisonSubmit}
+                availableCountries={countries}
+              />
+            </CardContent>
+          </Card>
         </div>
-      )}
 
-      {category === 'COVID' && baselineData && (
-        <CovidCharts
-          baselineData={baselineData}
-          comparisonData={comparisonData}
-          metric={metric as CovidMetric}
-        />
-      )}
+        <div className="relative h-full">
+          {loading ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : (
+            <>
+              {category === 'COVID' && baselineData && (
+                <CovidCharts
+                  baselineData={baselineData}
+                  comparisonData={comparisonData}
+                  metric={metric as CovidMetric}
+                />
+              )}
 
-      {category === 'DEMOGRAPHICS' && baselineData && (
-        <CountryChart
-          baselineCountries={baselineData.countries}
-          comparisonCountries={comparisonData?.countries || []}
-          metric={metric as DemographicsMetric}
-        />
-      )}
+              {category === 'DEMOGRAPHICS' && baselineData && (
+                <CountryChart
+                  baselineCountries={baselineData.countries}
+                  comparisonCountries={comparisonData?.countries || []}
+                  metric={metric as DemographicsMetric}
+                />
+              )}
 
-      {category === 'VACCINATION' && baselineData && (
-        <VaccinationChart
-          baselineData={baselineData}
-          comparisonData={comparisonData}
-          metric={metric as VaccinationMetric}
-        />
-      )}
+              {category === 'VACCINATION' && baselineData && (
+                <VaccinationChart
+                  baselineData={baselineData}
+                  comparisonData={comparisonData}
+                  metric={metric as VaccinationMetric}
+                />
+              )}
+            </>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
