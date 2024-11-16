@@ -19,16 +19,19 @@ export type CompareDataParams = {
   baseline: {
     countries?: string[];
     demographics?: DemographicFilters;
+    category: "DEMOGRAPHICS" | "COVID" | "VACCINATION";
   };
   comparison?: {
     countries?: string[];
     demographics?: DemographicFilters;
+    category: "DEMOGRAPHICS" | "COVID" | "VACCINATION";
   };
-  dateRange: {
+  dateRange?: {
     startDate: Date;
     endDate: Date;
   };
 };
+
 
 export class CompareDataService {
   constructor(
@@ -38,38 +41,53 @@ export class CompareDataService {
   ) { }
 
   async execute(params: CompareDataParams) {
-
-    const baselineCountries = await this.fetchCountries(params.baseline);
+    const baselineCountries = await this.fetchCountries({ countries: params.baseline.countries, demographics: params.baseline.demographics });
     const baselineCountryIds = baselineCountries.map((c) => c.id);
 
-    const baselineCovidData = await this.covidCasesRepository.findByMultipleCountries(
-      baselineCountryIds,
-      params.dateRange.startDate,
-      params.dateRange.endDate
-    );
+    const baselineCovidData =
+      params.baseline.category === "COVID"
+        ? await this.covidCasesRepository.findByMultipleCountries(
+          baselineCountryIds,
+          params.dateRange?.startDate || new Date(0),
+          params.dateRange?.endDate || new Date()
+        )
+        : [];
 
-    const baselineVaccinationData = await this.vaccinationsRepository.findManyByCountriesAndDateRange(
-      baselineCountryIds,
-      params.dateRange.startDate,
-      params.dateRange.endDate
-    );
+    const baselineVaccinationData =
+      params.baseline.category === "VACCINATION"
+        ? await this.vaccinationsRepository.findManyByCountriesAndDateRange(
+          baselineCountryIds,
+          params.dateRange?.startDate || new Date(0),
+          params.dateRange?.endDate || new Date()
+        )
+        : [];
 
     let comparisonResult = null;
+
     if (params.comparison) {
-      const comparisonCountries = await this.fetchCountries(params.comparison);
+      const comparisonCountries = await this.fetchCountries({
+        countries: params.comparison.countries,
+        demographics: params.comparison.demographics,
+      });
       const comparisonCountryIds = comparisonCountries.map((c) => c.id);
 
-      const comparisonCovidData = await this.covidCasesRepository.findByMultipleCountries(
-        comparisonCountryIds,
-        params.dateRange.startDate,
-        params.dateRange.endDate
-      );
+      const comparisonCovidData =
+        params.comparison.category === "COVID"
+          ? await this.covidCasesRepository.findByMultipleCountries(
+            comparisonCountryIds,
+            params.dateRange?.startDate || new Date(0),
+            params.dateRange?.endDate || new Date()
+          )
+          : [];
 
-      const comparisonVaccinationData = await this.vaccinationsRepository.findManyByCountriesAndDateRange(
-        comparisonCountryIds,
-        params.dateRange.startDate,
-        params.dateRange.endDate
-      );
+      const comparisonVaccinationData =
+        params.comparison.category === "VACCINATION"
+          ? await this.vaccinationsRepository.findManyByCountriesAndDateRange(
+            comparisonCountryIds,
+            params.dateRange?.startDate || new Date(0),
+            params.dateRange?.endDate || new Date()
+          )
+          : [];
 
       comparisonResult = {
         countries: comparisonCountries,
@@ -94,7 +112,7 @@ export class CompareDataService {
   }): Promise<Country[]> {
     const filters = input.demographics || {};
 
-    const countries = await this.countriesRepository.findAll({
+    return this.countriesRepository.findAll({
       isoCodes: input.countries,
       continent: filters.continent,
       incomeGroup: filters.incomeGroup,
@@ -110,10 +128,10 @@ export class CompareDataService {
         gte: filters.minGdpPerCapita,
         lte: filters.maxGdpPerCapita,
       },
-      maleSmokers: filters.smokerGender === 'male' ? { not: null } : undefined,
-      femaleSmokers: filters.smokerGender === 'female' ? { not: null } : undefined,
+      maleSmokers: filters.smokerGender === "male" ? { not: null } : undefined,
+      femaleSmokers: filters.smokerGender === "female" ? { not: null } : undefined,
     });
-
-    return countries;
   }
+
 }
+

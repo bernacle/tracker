@@ -1,325 +1,202 @@
-'use client'
-
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import React, { useState } from 'react'
-import {
-  Bar,
+  Area,
   CartesianGrid,
   ComposedChart,
   Legend,
-  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
-import type { ChartData, VaccinationData } from './types'
+import type { ChartData, CovidData, CovidMetric } from './types'
 
-interface CovidData {
-  id: string
-  date: string
-  newCases: number
-  totalCases: number
-  newDeaths: number
-  totalDeaths: number
-  countryId: string
-}
-
-interface Country {
-  id: string
-  name: string
-  [key: string]: string | number | null
-}
-
-type ProcessedDataPoint = {
-  [key: string]: string | number
-}
-
-interface ChartProps {
+interface CovidChartsProps {
   baselineData: ChartData
   comparisonData: ChartData | null
+  metric: CovidMetric
 }
 
-const METRIC_OPTIONS = {
-  COVID: {
-    newCases: 'New Cases',
-    totalCases: 'Total Cases',
-    newDeaths: 'New Deaths',
-    totalDeaths: 'Total Deaths',
-  },
-  VACCINATION: {
-    totalVaccinations: 'Total Vaccinations',
-    peopleVaccinated: 'People Vaccinated',
-    peopleFullyVaccinated: 'Fully Vaccinated',
-    totalVaccinationsPerHundred: 'Vaccination Rate (%)',
-  },
-} as const
-
-type MetricKeys =
-  | keyof typeof METRIC_OPTIONS.COVID
-  | keyof typeof METRIC_OPTIONS.VACCINATION
-
-const CHART_COLORS = {
-  baseline: {
-    primary: '#8884d8',
-    secondary: '#82ca9d',
-  },
-  comparison: {
-    primary: '#ff7300',
-    secondary: '#ff0000',
-  },
-} as const
-
-const processData = (
-  covidData: CovidData[],
-  vaccinationData: VaccinationData[]
-): ProcessedDataPoint[] => {
-  const mergedData = new Map<string, ProcessedDataPoint>()
-
-  covidData.forEach((entry) => {
-    const date = entry.date.split('T')[0]
-    if (!mergedData.has(date)) {
-      mergedData.set(date, { date })
-    }
-    const current = mergedData.get(date)!
-    Object.entries(entry).forEach(([key, value]) => {
-      if (value !== null && key !== 'id' && key !== 'countryId') {
-        current[key] = value
-      }
-    })
-  })
-
-  vaccinationData.forEach((entry) => {
-    const date = entry.date.split('T')[0]
-    if (!mergedData.has(date)) {
-      mergedData.set(date, { date })
-    }
-    const current = mergedData.get(date)!
-    Object.entries(entry).forEach(([key, value]) => {
-      if (value !== null && key !== 'id' && key !== 'countryId') {
-        current[key] = value
-      }
-    })
-  })
-
-  return Array.from(mergedData.values()).sort(
-    (a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf()
-  )
+interface MergedDataPoint {
+  date: string
+  baselineValue: number
+  comparisonValue: number
+  baselineCountry: string
+  comparisonCountry: string
 }
 
-export const CovidCharts: React.FC<ChartProps> = ({
+export const CovidCharts: React.FC<CovidChartsProps> = ({
   baselineData,
   comparisonData,
+  metric,
 }) => {
-  const [selectedMetrics, setSelectedMetrics] = useState<{
-    primary: MetricKeys
-    secondary: keyof typeof METRIC_OPTIONS.VACCINATION
-  }>({
-    primary: 'newCases',
-    secondary: 'totalVaccinationsPerHundred',
-  })
+  const processData = (data: ChartData): CovidData[] => {
+    const uniqueEntries = new Map<string, CovidData>()
 
-  const getMetricLabel = (metric: MetricKeys): string => {
-    return (
-      METRIC_OPTIONS.COVID[metric as keyof typeof METRIC_OPTIONS.COVID] ||
-      METRIC_OPTIONS.VACCINATION[
-        metric as keyof typeof METRIC_OPTIONS.VACCINATION
-      ] ||
-      metric
+    if (data.covidData) {
+      const covidDataValues = Object.values(
+        data.covidData
+      ) as unknown as CovidData[][]
+
+      for (const countryData of covidDataValues) {
+        if (Array.isArray(countryData)) {
+          for (const entry of countryData) {
+            uniqueEntries.set(entry.date, entry)
+          }
+        }
+      }
+    }
+
+    return Array.from(uniqueEntries.values())
+  }
+
+  const mergeDataByDate = (
+    baseline: CovidData[],
+    baselineCountry: string,
+    comparison: CovidData[] | null,
+    comparisonCountry: string | null
+  ): MergedDataPoint[] => {
+    const dateMap = new Map<string, MergedDataPoint>()
+
+    baseline.forEach((entry) => {
+      const date = entry.date
+      dateMap.set(date, {
+        date,
+        baselineValue: entry[metric] || 0,
+        baselineCountry,
+        comparisonValue: 0,
+        comparisonCountry: comparisonCountry || 'Unknown',
+      })
+    })
+
+    if (comparison && comparison.length > 0) {
+      comparison.forEach((entry) => {
+        const date = entry.date
+        const existingEntry = dateMap.get(date)
+
+        if (existingEntry) {
+          existingEntry.comparisonValue = entry[metric] || 0
+          existingEntry.comparisonCountry = comparisonCountry || 'Unknown'
+        } else {
+          dateMap.set(date, {
+            date,
+            baselineValue: 0,
+            comparisonValue: entry[metric] || 0,
+            baselineCountry,
+            comparisonCountry: comparisonCountry || 'Unknown',
+          })
+        }
+      })
+    }
+
+    return Array.from(dateMap.values()).sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     )
   }
 
-  const renderMainChart = () => {
-    const baselineProcessed = processData(
-      baselineData.covidData,
-      baselineData.vaccinationData
-    )
-    const comparisonProcessed = comparisonData
-      ? processData(comparisonData.covidData, comparisonData.vaccinationData)
-      : null
+  const baselineCountry = baselineData.countries[0]?.name || 'Unknown'
+  const comparisonCountry =
+    comparisonData?.countries[0]?.name || 'Comparison Not Selected'
 
+  const baselineProcessed = processData(baselineData)
+  const comparisonProcessed = comparisonData
+    ? processData(comparisonData)
+    : null
+
+  const mergedData = mergeDataByDate(
+    baselineProcessed,
+    baselineCountry,
+    comparisonProcessed,
+    comparisonCountry
+  )
+
+  const hasData = mergedData.some(
+    (entry) => entry.baselineValue > 0 || entry.comparisonValue > 0
+  )
+
+  if (!hasData) {
     return (
-      <ResponsiveContainer width="100%" height={400}>
-        <ComposedChart margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="date"
-            tickFormatter={(date: string) =>
-              new Date(date).toLocaleDateString()
-            }
-            angle={-45}
-            textAnchor="end"
-          />
-          <YAxis
-            yAxisId="left"
-            label={{
-              value: getMetricLabel(selectedMetrics.primary),
-              angle: -90,
-              position: 'insideLeft',
-            }}
-          />
-          <YAxis
-            yAxisId="right"
-            orientation="right"
-            label={{
-              value: getMetricLabel(selectedMetrics.secondary),
-              angle: 90,
-              position: 'insideRight',
-            }}
-          />
-          <Tooltip
-            content={({ active, payload }) => {
-              if (!active || !payload) return null
-              return (
-                <div className="rounded border bg-white p-4 shadow-lg">
-                  <p className="font-bold">
-                    {payload[0]?.payload?.date
-                      ? new Date(payload[0].payload.date).toLocaleDateString()
-                      : ''}
-                  </p>
-                  {payload.map((entry: any, index: number) => (
-                    <p key={index} style={{ color: entry.color }}>
-                      {entry.name}: {entry.value?.toLocaleString()}
-                    </p>
-                  ))}
-                </div>
-              )
-            }}
-          />
-          <Legend />
-
-          <Bar
-            yAxisId="left"
-            dataKey={selectedMetrics.primary}
-            data={baselineProcessed}
-            fill={CHART_COLORS.baseline.primary}
-            name={`Baseline ${getMetricLabel(selectedMetrics.primary)}`}
-          />
-          <Line
-            yAxisId="right"
-            type="monotone"
-            dataKey={selectedMetrics.secondary}
-            data={baselineProcessed}
-            stroke={CHART_COLORS.baseline.secondary}
-            name={`Baseline ${getMetricLabel(selectedMetrics.secondary)}`}
-          />
-
-          {comparisonProcessed && (
-            <>
-              <Bar
-                yAxisId="left"
-                dataKey={selectedMetrics.primary}
-                data={comparisonProcessed}
-                fill={CHART_COLORS.comparison.primary}
-                name={`Comparison ${getMetricLabel(selectedMetrics.primary)}`}
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey={selectedMetrics.secondary}
-                data={comparisonProcessed}
-                stroke={CHART_COLORS.comparison.secondary}
-                name={`Comparison ${getMetricLabel(selectedMetrics.secondary)}`}
-              />
-            </>
-          )}
-        </ComposedChart>
-      </ResponsiveContainer>
+      <div className="flex h-64 items-center justify-center text-gray-500">
+        No data available to display.
+      </div>
     )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>COVID-19 Statistics</CardTitle>
-        <CardDescription>
-          Visualization of COVID-19 and vaccination data
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Primary Metric</label>
-            <Select
-              value={selectedMetrics.primary}
-              onValueChange={(value: MetricKeys) =>
-                setSelectedMetrics((prev) => ({ ...prev, primary: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>COVID Data</SelectLabel>
-                  {Object.entries(METRIC_OPTIONS.COVID).map(
-                    ([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    )
-                  )}
-                </SelectGroup>
-                <SelectGroup>
-                  <SelectLabel>Vaccination Data</SelectLabel>
-                  {Object.entries(METRIC_OPTIONS.VACCINATION).map(
-                    ([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    )
-                  )}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+    <ResponsiveContainer width="100%" height={400}>
+      <ComposedChart data={mergedData}>
+        <defs>
+          <linearGradient id="baselineGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#8884d8" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1} />
+          </linearGradient>
+          <linearGradient id="comparisonGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#82ca9d" stopOpacity={0.1} />
+          </linearGradient>
+        </defs>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Secondary Metric</label>
-            <Select
-              value={selectedMetrics.secondary}
-              onValueChange={(value: keyof typeof METRIC_OPTIONS.VACCINATION) =>
-                setSelectedMetrics((prev) => ({ ...prev, secondary: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Vaccination Data</SelectLabel>
-                  {Object.entries(METRIC_OPTIONS.VACCINATION).map(
-                    ([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    )
-                  )}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {renderMainChart()}
-      </CardContent>
-    </Card>
+        <CartesianGrid stroke="#e0e0e0" strokeDasharray="3 3" opacity={0.5} />
+        <XAxis
+          dataKey="date"
+          tickFormatter={(date) =>
+            new Date(date).toLocaleDateString('en-US', {
+              month: 'short',
+              year: 'numeric',
+            })
+          }
+          angle={-45}
+          textAnchor="end"
+          height={60}
+          interval="preserveStartEnd"
+          minTickGap={50}
+        />
+        <YAxis
+          allowDecimals={false}
+          domain={[0, 'auto']}
+          tickFormatter={(value) =>
+            Intl.NumberFormat('en-US', { notation: 'compact' }).format(value)
+          }
+        />
+        <Tooltip
+          formatter={(value: number, name: string) => {
+            const displayName =
+              name === 'baselineValue' ? baselineCountry : comparisonCountry
+            return [
+              `${Intl.NumberFormat('en-US').format(value)}`,
+              `${displayName}`,
+            ]
+          }}
+          labelFormatter={(label: string) =>
+            `${new Date(label).toLocaleDateString('en-US', {
+              weekday: 'short',
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })} - Metric: ${metric}`
+          }
+        />
+        <Legend />
+        <Area
+          type="monotone"
+          dataKey="baselineValue"
+          stroke="#8884d8"
+          strokeWidth={2}
+          fill="url(#baselineGradient)"
+          name={baselineCountry}
+          connectNulls
+          dot={false}
+        />
+        <Area
+          type="monotone"
+          dataKey="comparisonValue"
+          stroke="#82ca9d"
+          strokeWidth={2}
+          fill="url(#comparisonGradient)"
+          name={comparisonCountry}
+          connectNulls
+          dot={false}
+        />
+      </ComposedChart>
+    </ResponsiveContainer>
   )
 }
-
-export default CovidCharts

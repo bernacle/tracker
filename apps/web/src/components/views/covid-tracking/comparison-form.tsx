@@ -2,13 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import {
   Popover,
@@ -24,43 +18,43 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
-import { Calendar as CalendarIcon } from 'lucide-react'
-import React, { useState } from 'react'
+import { CalendarIcon } from 'lucide-react'
+import { useState } from 'react'
 
 const METRIC_CATEGORIES = {
-  DEMOGRAPHICS: 'DEMOGRAPHICS',
-  COVID: 'COVID',
-  VACCINATION: 'VACCINATION',
+  DEMOGRAPHICS: 'Demographics',
+  COVID: 'COVID Data',
+  VACCINATION: 'Vaccination Data',
 } as const
 
-const DEMOGRAPHICS = {
-  income_group: 'Income Group',
-  population_density: 'Population Density',
-  median_age: 'Median Age',
-  gdp_per_capita: 'GDP per Capita',
-  cardiovasc_death_rate: 'Cardiovascular Death Rate',
-  diabetes_prevalence: 'Diabetes Prevalence',
-  female_smokers: 'Female Smokers %',
-  male_smokers: 'Male Smokers %',
-  hospital_beds_per_thousand: 'Hospital Beds per 1000',
-  human_development_index: 'Human Development Index',
-} as const
-
-const COVID_METRICS = {
-  newCases: 'New Cases',
-  totalCases: 'Total Cases',
-  newDeaths: 'New Deaths',
-  totalDeaths: 'Total Deaths',
-} as const
-
-const VACCINATION_METRICS = {
-  totalVaccinationsPerHundred: 'Total Vaccinations per 100 people',
-  peopleVaccinatedPerHundred: 'People with at least one dose per 100',
-  peopleFullyVaccinatedPerHundred: 'Fully vaccinated people per 100',
-  totalBoostersPerHundred: 'Boosters per 100 people',
-  dailyVaccinationsSmoothed: 'Daily Vaccinations (7-day avg)',
-  dailyVaccinationsSmoothedPerMillion:
-    'Daily Vaccinations per million (7-day avg)',
+const METRICS = {
+  DEMOGRAPHICS: {
+    income_group: 'Income Group',
+    population_density: 'Population Density',
+    median_age: 'Median Age',
+    gdp_per_capita: 'GDP per Capita',
+    cardiovasc_death_rate: 'Cardiovascular Death Rate',
+    diabetes_prevalence: 'Diabetes Prevalence',
+    female_smokers: 'Female Smokers %',
+    male_smokers: 'Male Smokers %',
+    hospital_beds_per_thousand: 'Hospital Beds per 1000',
+    human_development_index: 'Human Development Index',
+  },
+  COVID: {
+    newCases: 'New Cases',
+    totalCases: 'Total Cases',
+    newDeaths: 'New Deaths',
+    totalDeaths: 'Total Deaths',
+  },
+  VACCINATION: {
+    totalVaccinationsPerHundred: 'Total Vaccinations per 100 people',
+    peopleVaccinatedPerHundred: 'People with at least one dose per 100',
+    peopleFullyVaccinatedPerHundred: 'Fully vaccinated people per 100',
+    totalBoostersPerHundred: 'Boosters per 100 people',
+    dailyVaccinationsSmoothed: 'Daily Vaccinations (7-day avg)',
+    dailyVaccinationsSmoothedPerMillion:
+      'Daily Vaccinations per million (7-day avg)',
+  },
 } as const
 
 interface Country {
@@ -70,7 +64,7 @@ interface Country {
 
 interface ComparisonData {
   baselineCountry: string
-  comparisonCountry: string
+  comparisonCountry?: string
   category: keyof typeof METRIC_CATEGORIES
   metric: string
   dateRange?: {
@@ -89,7 +83,9 @@ export function ComparisonForm({
   availableCountries,
 }: ComparisonFormProps) {
   const [baselineCountry, setBaselineCountry] = useState<string>('')
-  const [comparisonCountry, setComparisonCountry] = useState<string>('')
+  const [comparisonCountry, setComparisonCountry] = useState<
+    string | undefined
+  >(undefined)
   const [selectedCategory, setSelectedCategory] = useState<
     keyof typeof METRIC_CATEGORIES | ''
   >('')
@@ -104,23 +100,12 @@ export function ComparisonForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (
-      !baselineCountry ||
-      !comparisonCountry ||
-      !selectedCategory ||
-      !selectedMetric
-    )
-      return
-
-    const needsDateRange = selectedCategory !== 'DEMOGRAPHICS'
-    if (needsDateRange && (!dateRange.startDate || !dateRange.endDate)) return
-
     onSubmit({
       baselineCountry,
-      comparisonCountry,
+      ...(comparisonCountry ? { comparisonCountry } : {}),
       category: selectedCategory as keyof typeof METRIC_CATEGORIES,
       metric: selectedMetric,
-      ...(needsDateRange && dateRange.startDate && dateRange.endDate
+      ...(dateRange.startDate && dateRange.endDate
         ? {
             dateRange: {
               startDate: dateRange.startDate,
@@ -132,41 +117,44 @@ export function ComparisonForm({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Compare Countries</CardTitle>
-        <CardDescription>
-          Select two countries and what data you want to compare
-        </CardDescription>
+    <Card className="mx-auto w-full max-w-xl">
+      <CardHeader className="text-center">
+        <CardTitle className="text-3xl font-bold">Compare Countries</CardTitle>
+        <p className="mt-2 text-muted-foreground">
+          Select countries and data to visualize or compare
+        </p>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* First Country Selection */}
-          <div className="space-y-2">
-            <Label>First Country</Label>
-            <Select value={baselineCountry} onValueChange={setBaselineCountry}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select first country" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCountries.map((country) => (
-                  <SelectItem key={country.id} value={country.id}>
-                    {country.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-4">
+              <Label className="text-lg font-semibold">First Country</Label>
+              <Select
+                value={baselineCountry}
+                onValueChange={setBaselineCountry}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select first country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCountries.map((country) => (
+                    <SelectItem key={country.id} value={country.id}>
+                      {country.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Second Country Selection */}
-          {baselineCountry && (
-            <div className="space-y-2">
-              <Label>Second Country</Label>
+            <div className="space-y-4">
+              <Label className="text-lg font-semibold">
+                Second Country (Optional)
+              </Label>
               <Select
                 value={comparisonCountry}
                 onValueChange={setComparisonCountry}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select second country" />
                 </SelectTrigger>
                 <SelectContent>
@@ -180,154 +168,140 @@ export function ComparisonForm({
                 </SelectContent>
               </Select>
             </div>
-          )}
+          </div>
 
-          {/* Category Selection */}
-          {comparisonCountry && (
-            <div className="space-y-2">
-              <Label>What to Compare</Label>
-              <Select
-                value={selectedCategory}
-                onValueChange={(value: keyof typeof METRIC_CATEGORIES) => {
-                  setSelectedCategory(value)
-                  setSelectedMetric('')
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select data category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={METRIC_CATEGORIES.DEMOGRAPHICS}>
-                    Demographics
+          <div className="space-y-4">
+            <Label className="text-lg font-semibold">What to Compare</Label>
+            <Select
+              value={selectedCategory}
+              onValueChange={(value: keyof typeof METRIC_CATEGORIES) => {
+                setSelectedCategory(value)
+                setSelectedMetric('')
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select data category" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(METRIC_CATEGORIES).map(([key, value]) => (
+                  <SelectItem key={key} value={key}>
+                    {value}
                   </SelectItem>
-                  <SelectItem value={METRIC_CATEGORIES.COVID}>
-                    COVID Data
-                  </SelectItem>
-                  <SelectItem value={METRIC_CATEGORIES.VACCINATION}>
-                    Vaccination Data
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedCategory && selectedCategory !== 'DEMOGRAPHICS' && (
+            <div className="space-y-4">
+              <Label className="text-lg font-semibold">
+                Date Range (Optional)
+              </Label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'w-full justify-start text-left font-normal',
+                        !dateRange.startDate && 'text-muted-foreground'
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange.startDate ? (
+                        format(dateRange.startDate, 'PPP')
+                      ) : (
+                        <span>Start date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto p-0"
+                    align="start"
+                    side="bottom"
+                    sideOffset={8}
+                    avoidCollisions={false}
+                  >
+                    <Calendar
+                      mode="single"
+                      selected={dateRange.startDate}
+                      onSelect={(date) =>
+                        setDateRange((prev) => ({ ...prev, startDate: date }))
+                      }
+                      defaultMonth={new Date(2019, 11)}
+                      fromYear={2019}
+                      toYear={new Date().getFullYear()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'w-full justify-start text-left font-normal',
+                        !dateRange.endDate && 'text-muted-foreground'
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange.endDate ? (
+                        format(dateRange.endDate, 'PPP')
+                      ) : (
+                        <span>End date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto p-0"
+                    align="start"
+                    side="bottom"
+                    sideOffset={8}
+                    avoidCollisions={false}
+                  >
+                    <Calendar
+                      mode="single"
+                      selected={dateRange.endDate}
+                      onSelect={(date) =>
+                        setDateRange((prev) => ({ ...prev, endDate: date }))
+                      }
+                      defaultMonth={new Date()}
+                      fromYear={2019}
+                      toYear={new Date().getFullYear()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           )}
 
-          {/* Metric Selection */}
           {selectedCategory && (
-            <div className="space-y-2">
-              <Label>Specific Metric</Label>
+            <div className="space-y-4">
+              <Label className="text-lg font-semibold">Specific Metric</Label>
               <Select value={selectedMetric} onValueChange={setSelectedMetric}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select metric" />
                 </SelectTrigger>
                 <SelectContent>
-                  {selectedCategory === METRIC_CATEGORIES.DEMOGRAPHICS &&
-                    Object.entries(DEMOGRAPHICS).map(([key, label]) => (
+                  {Object.entries(METRICS[selectedCategory]).map(
+                    ([key, label]) => (
                       <SelectItem key={key} value={key}>
                         {label}
                       </SelectItem>
-                    ))}
-                  {selectedCategory === METRIC_CATEGORIES.COVID &&
-                    Object.entries(COVID_METRICS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  {selectedCategory === METRIC_CATEGORIES.VACCINATION &&
-                    Object.entries(VACCINATION_METRICS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </div>
           )}
 
-          {/* Date Range (only for COVID and Vaccination) */}
-          {selectedCategory &&
-            selectedCategory !== METRIC_CATEGORIES.DEMOGRAPHICS && (
-              <div className="space-y-2">
-                <Label>Date Range</Label>
-                <div className="flex space-x-2">
-                  <div className="grid gap-2">
-                    <Label>Start Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            'justify-start text-left font-normal',
-                            !dateRange.startDate && 'text-muted-foreground'
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {dateRange.startDate ? (
-                            format(dateRange.startDate, 'PPP')
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={dateRange.startDate}
-                          onSelect={(date) =>
-                            setDateRange((prev) => ({
-                              ...prev,
-                              startDate: date,
-                            }))
-                          }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>End Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            'justify-start text-left font-normal',
-                            !dateRange.endDate && 'text-muted-foreground'
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {dateRange.endDate ? (
-                            format(dateRange.endDate, 'PPP')
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={dateRange.endDate}
-                          onSelect={(date) =>
-                            setDateRange((prev) => ({ ...prev, endDate: date }))
-                          }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-              </div>
-            )}
-
           <Button
             type="submit"
-            disabled={
-              !baselineCountry ||
-              !comparisonCountry ||
-              !selectedCategory ||
-              !selectedMetric ||
-              (selectedCategory !== METRIC_CATEGORIES.DEMOGRAPHICS &&
-                (!dateRange.startDate || !dateRange.endDate))
-            }
+            className="w-full"
+            disabled={!baselineCountry || !selectedCategory || !selectedMetric}
           >
-            Compare
+            Compare Data
           </Button>
         </form>
       </CardContent>

@@ -1,35 +1,22 @@
-import { makeComparaDataService } from "@/services/factories/make-compare-data-service";
+import { makeCompareDataService } from "@/services/factories/make-compare-data-service";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { graphSchema } from "./schemas";
-import { normalizeDemographics } from "./utils";
 
 export async function data(request: FastifyRequest, reply: FastifyReply) {
   const parsedData = graphSchema.parse(request.body);
 
-  const normalizedData = {
-    ...parsedData,
-    baseline: {
-      ...parsedData.baseline,
-      demographics: normalizeDemographics(parsedData.baseline.demographics),
-    },
-    comparison: parsedData.comparison
-      ? {
-        ...parsedData.comparison,
-        demographics: normalizeDemographics(parsedData.comparison.demographics),
-      }
-      : undefined,
-  };
+  const compareDataService = makeCompareDataService();
 
-  const compareDataService = makeComparaDataService();
-
-  const dateRange = {
-    startDate: new Date(normalizedData.dateRange.startDate),
-    endDate: new Date(normalizedData.dateRange.endDate),
-  };
+  const dateRange = parsedData.dateRange
+    ? {
+      startDate: new Date(parsedData.dateRange.startDate),
+      endDate: new Date(parsedData.dateRange.endDate),
+    }
+    : undefined;
 
   const { baseline, comparison } = await compareDataService.execute({
-    baseline: normalizedData.baseline,
-    comparison: normalizedData.comparison,
+    baseline: parsedData.baseline,
+    comparison: parsedData.comparison,
     dateRange,
   });
 

@@ -6,8 +6,20 @@ import { fetchData } from '@/http/requests/graph'
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ComparisonForm } from './comparison-form'
+import { CountryChart } from './country-chart'
 import { CovidCharts } from './covid-charts'
-import type { ChartData, ComparisonData, Country } from './types'
+import type {
+  Category,
+  ChartData,
+  ComparisonData,
+  Country,
+  CovidMetric,
+  DemographicsMetric,
+  GraphRequest,
+  Metric,
+  VaccinationMetric,
+} from './types'
+import { VaccinationChart } from './vaccination-chart'
 
 export default function CovidTracking() {
   const [loading, setLoading] = useState(false)
@@ -15,16 +27,19 @@ export default function CovidTracking() {
   const [countries, setCountries] = useState<Country[]>([])
   const [baselineData, setBaselineData] = useState<ChartData | null>(null)
   const [comparisonData, setComparisonData] = useState<ChartData | null>(null)
+  const [metric, setMetric] = useState<Metric>('newCases')
+  const [category, setCategory] = useState<Category>('COVID')
 
   useEffect(() => {
     const loadCountries = async () => {
       try {
-        const { countries } = await fetchCountries()
-        setCountries(countries)
+        const response = await fetchCountries()
+        setCountries(response.countries)
       } catch (err) {
         setError('Failed to load countries')
       }
     }
+
     loadCountries()
   }, [])
 
@@ -32,30 +47,50 @@ export default function CovidTracking() {
     setLoading(true)
     setError(null)
 
-    const request = {
+    setMetric(data.metric as Metric)
+    setCategory(data.category as Category)
+
+    const baselineCountryIsoCode = countries.find(
+      (country) => country.id === data.baselineCountry
+    )?.isoCode
+
+    if (!baselineCountryIsoCode) {
+      throw new Error('Baseline country not found')
+    }
+
+    const comparisonCountryIsoCode = data.comparisonCountry
+      ? countries.find((country) => country.id === data.comparisonCountry)
+          ?.isoCode
+      : undefined
+
+    const request: GraphRequest = {
       baseline: {
-        countries: [data.baselineCountry],
+        countries: [baselineCountryIsoCode],
+        category: data.category,
+        metric: data.metric,
       },
-      comparison: {
-        countries: [data.comparisonCountry],
-      },
-      dateRange: data.dateRange
+      ...(comparisonCountryIsoCode
         ? {
-            startDate: data.dateRange.startDate.toISOString(),
-            endDate: data.dateRange.endDate.toISOString(),
+            comparison: {
+              countries: [comparisonCountryIsoCode],
+              category: data.category,
+              metric: data.metric,
+            },
           }
-        : {
-            startDate: new Date(
-              Date.now() - 30 * 24 * 60 * 60 * 1000
-            ).toISOString(),
-            endDate: new Date().toISOString(),
-          },
+        : {}),
+
+      ...(data.dateRange && {
+        dateRange: {
+          startDate: data.dateRange.startDate.toISOString(),
+          endDate: data.dateRange.endDate.toISOString(),
+        },
+      }),
     }
 
     try {
       const responseData = await fetchData(request)
       setBaselineData(responseData.baseline)
-      setComparisonData(responseData.comparison)
+      setComparisonData(responseData.comparison || null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch data')
     } finally {
@@ -63,7 +98,6 @@ export default function CovidTracking() {
     }
   }
 
-  // The rest of your component remains the same
   return (
     <div className="container mx-auto space-y-6 p-4">
       <ComparisonForm
@@ -85,10 +119,27 @@ export default function CovidTracking() {
         </div>
       )}
 
-      {baselineData && (
+      {category === 'COVID' && baselineData && (
         <CovidCharts
           baselineData={baselineData}
           comparisonData={comparisonData}
+          metric={metric as CovidMetric}
+        />
+      )}
+
+      {category === 'DEMOGRAPHICS' && baselineData && (
+        <CountryChart
+          baselineCountries={baselineData.countries}
+          comparisonCountries={comparisonData?.countries || []}
+          metric={metric as DemographicsMetric}
+        />
+      )}
+
+      {category === 'VACCINATION' && baselineData && (
+        <VaccinationChart
+          baselineData={baselineData}
+          comparisonData={comparisonData}
+          metric={metric as VaccinationMetric}
         />
       )}
     </div>

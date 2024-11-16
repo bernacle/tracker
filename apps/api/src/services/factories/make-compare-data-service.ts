@@ -3,7 +3,7 @@ import { PrismaCovidCaseRepository } from "@/repositories/prisma/prisma-covid-ca
 import { PrismaVaccinationRepository } from "@/repositories/prisma/prisma-vaccinations-repository";
 import { CompareDataService } from "../compare-data-service";
 
-export function makeComparaDataService() {
+export function makeCompareDataService() {
   const countriesRepository = new PrismaCountriesRepository();
   const covidCasesRepository = new PrismaCovidCaseRepository();
   const vaccinationsRepository = new PrismaVaccinationRepository();
