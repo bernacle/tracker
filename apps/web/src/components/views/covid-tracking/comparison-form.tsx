@@ -1,13 +1,8 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -15,10 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
-import { format } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
-import { useState } from 'react'
+import { getSearches } from '@/http/requests/get-searches'
+import { saveSearch } from '@/http/requests/save-search'
+import { useEffect, useState } from 'react'
+import { SavedSearchesModal } from '../saved-searches-modal'
 import { METRICS, METRIC_CATEGORIES } from './constants'
 
 interface Country {
@@ -37,6 +32,12 @@ interface ComparisonData {
   }
 }
 
+interface SavedSearch {
+  id: string
+  name: string
+  criteria: string
+}
+
 interface ComparisonFormProps {
   onSubmit: (data: ComparisonData) => void
   availableCountries: Country[]
@@ -46,6 +47,8 @@ export function ComparisonForm({
   onSubmit,
   availableCountries,
 }: ComparisonFormProps) {
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [baselineCountry, setBaselineCountry] = useState<string>('')
   const [comparisonCountry, setComparisonCountry] = useState<
     string | undefined
@@ -61,9 +64,67 @@ export function ComparisonForm({
     startDate: undefined,
     endDate: undefined,
   })
+  const [searchName, setSearchName] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    async function fetchSavedSearches() {
+      const response = await getSearches()
+      setSavedSearches(response.searches)
+    }
+
+    fetchSavedSearches()
+  }, [])
+
+  const handleSavedSearchSelect = (search: SavedSearch) => {
+    const criteria = JSON.parse(search.criteria)
+
+    resetStates()
+
+    setTimeout(() => {
+      setBaselineCountry(criteria.baselineCountry || '')
+      setComparisonCountry(criteria.comparisonCountry || undefined)
+      setSelectedCategory(criteria.category || '')
+      setSelectedMetric(criteria.metric || '')
+      setDateRange({
+        startDate: criteria.dateRange?.startDate
+          ? new Date(criteria.dateRange.startDate)
+          : undefined,
+        endDate: criteria.dateRange?.endDate
+          ? new Date(criteria.dateRange.endDate)
+          : undefined,
+      })
+    }, 0)
+  }
+
+  const resetStates = () => {
+    setBaselineCountry('')
+    setComparisonCountry(undefined)
+    setSelectedCategory('')
+    setSelectedMetric('')
+    setDateRange({ startDate: undefined, endDate: undefined })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const criteria = JSON.stringify({
+      baselineCountry,
+      comparisonCountry,
+      category: selectedCategory,
+      metric: selectedMetric,
+      dateRange,
+    })
+
+    if (searchName) {
+      try {
+        await saveSearch({ name: searchName, criteria })
+        const updatedSearches = await getSearches()
+        setSavedSearches(updatedSearches.searches)
+      } catch (error) {
+        console.error('Error saving search:', error)
+      }
+    }
+
     onSubmit({
       baselineCountry,
       ...(comparisonCountry ? { comparisonCountry } : {}),
@@ -83,13 +144,31 @@ export function ComparisonForm({
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Compare Countries
-        </h2>
+        <div className="flex justify-between">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Compare Countries
+          </h2>
+          <div className="space-y-4">
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Load Searches
+            </Button>
+          </div>
+        </div>
         <p className="text-sm text-muted-foreground">
           Select countries and data to visualize or compare
         </p>
       </div>
+
+      <SavedSearchesModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSelectSearch={handleSavedSearchSelect}
+        savedSearches={savedSearches}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2">
@@ -154,70 +233,6 @@ export function ComparisonForm({
             </Select>
           </div>
 
-          {selectedCategory && selectedCategory !== 'DEMOGRAPHICS' && (
-            <div className="space-y-2">
-              <Label>Date Range (Optional)</Label>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        'w-full justify-start text-left font-normal',
-                        !dateRange.startDate && 'text-muted-foreground'
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.startDate ? (
-                        format(dateRange.startDate, 'PPP')
-                      ) : (
-                        <span>Start date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dateRange.startDate}
-                      onSelect={(date) =>
-                        setDateRange((prev) => ({ ...prev, startDate: date }))
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        'w-full justify-start text-left font-normal',
-                        !dateRange.endDate && 'text-muted-foreground'
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.endDate ? (
-                        format(dateRange.endDate, 'PPP')
-                      ) : (
-                        <span>End date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dateRange.endDate}
-                      onSelect={(date) =>
-                        setDateRange((prev) => ({ ...prev, endDate: date }))
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-          )}
-
           {selectedCategory && (
             <div className="space-y-2">
               <Label>Specific Metric</Label>
@@ -238,6 +253,18 @@ export function ComparisonForm({
             </div>
           )}
         </div>
+
+        {selectedMetric && (
+          <div className="space-y-2">
+            <Label htmlFor="searchName">Enter a name to save your search</Label>
+            <Input
+              id="searchName"
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              placeholder="Enter search name"
+            />
+          </div>
+        )}
 
         <Button
           type="submit"
