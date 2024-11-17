@@ -43,6 +43,8 @@ This project is a Turborepo monorepo that uses `pnpm` for package management.
    ```sh
    pnpm dev
    ```
+7. **Register and Authenticate an user** 
+   With the server running, access `/auth/sign-up` to register a new user, then log in at `/auth/sign-in`
 
 ## Notes
 
@@ -53,3 +55,7 @@ pnpm test
 - The `docker compose up -d` command will create a PostgreSQL instance that the application depends on.
 - The seeding script must be run to populate the database with initial data before starting the app.
 
+## Local URLs
+
+- `API`: Accessible at `http://localhost:3333`.
+- `WEB`: Accessible at `http://localhost:3000`.
