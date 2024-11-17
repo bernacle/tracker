@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { CountriesMapper } from "@/services/mapper/countries-mapper";
 import type { Country } from "@prisma/client";
 import type { CountriesRepository, Filters } from "../countries-repository";
 
@@ -14,7 +15,10 @@ export class PrismaCountriesRepository implements CountriesRepository {
     })
   }
   async findAll(filters?: Filters): Promise<Country[]> {
-    return prisma.country.findMany({
+
+
+
+    const countries = await prisma.country.findMany({
       where: {
         isoCode: filters?.isoCodes ? { in: filters.isoCodes } : undefined,
         continent: filters?.continent,
@@ -34,6 +38,12 @@ export class PrismaCountriesRepository implements CountriesRepository {
         maleSmokers: filters?.maleSmokers,
         femaleSmokers: filters?.femaleSmokers,
       },
+      orderBy: {
+        name: 'asc'
+      }
     });
+
+    return countries.map(country => CountriesMapper.toCapitalize(country))
+
   }
 }

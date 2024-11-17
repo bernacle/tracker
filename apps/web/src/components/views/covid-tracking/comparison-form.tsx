@@ -115,23 +115,7 @@ export function ComparisonForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const criteria = JSON.stringify({
-      baselineCountry,
-      comparisonCountry,
-      category: selectedCategory,
-      metric: selectedMetric,
-      dateRange,
-    })
-
-    if (searchName) {
-      try {
-        await saveSearch({ name: searchName, criteria })
-        const updatedSearches = await getSearches()
-        setSavedSearches(updatedSearches.searches)
-      } catch (error) {
-        console.error('Error saving search:', error)
-      }
-    }
+    if (searchName) saveUserSearch()
 
     onSubmit({
       baselineCountry,
@@ -147,6 +131,25 @@ export function ComparisonForm({
           }
         : {}),
     })
+  }
+
+  const saveUserSearch = async () => {
+    try {
+      const criteria = JSON.stringify({
+        baselineCountry,
+        comparisonCountry,
+        category: selectedCategory,
+        metric: selectedMetric,
+        dateRange,
+      })
+
+      await saveSearch({ name: searchName, criteria })
+      const updatedSearches = await getSearches()
+      setSavedSearches(updatedSearches.searches)
+      setSearchName('')
+    } catch (error) {
+      console.error('Error saving search:', error)
+    }
   }
 
   return (
